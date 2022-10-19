@@ -1,6 +1,6 @@
 <template>
-  <v-container>
-    <v-card v-if="existingUser" max-width="500px" elevation="12" class="mx-auto">
+  <v-container fill-height>
+    <v-card v-if="existingUser" width="500px" elevation="12" class="mx-auto">
       <v-card-text>
         <v-form ref="loginForm" v-model="valid">
           <v-text-field
@@ -35,7 +35,7 @@
         <v-btn text block color="primary" @click="showPwResetDialog = true">Passwort vergessen?</v-btn>
       </v-card-text>
     </v-card>
-    <v-card v-else max-width="500px" elevation="12" class="mx-auto">
+    <v-card v-else width="500px" elevation="12" class="mx-auto">
       <v-card-text>
         <v-form ref="signupForm" v-model="valid">
           <v-text-field
@@ -98,7 +98,7 @@
         </v-btn>
       </v-card-text>
     </v-card>
-    <v-dialog v-model="showPwResetDialog" max-width="500px">
+    <v-dialog v-model="showPwResetDialog" width="500px">
       <v-card>
         <v-card-title>
           <span class="headline">Passwort zurücksetzen</span>
@@ -139,7 +139,7 @@ export default {
       email: '',
       emailRules: [
         v => !!v || this.defaultErrorReqField,
-        v => /^\w+([.-]?\w+)*@(iu\.org|iubh-fernstudium\.de)+$/.test(v) || 'Keine gültige IU E-Mail-Adresse'
+        v => /^\w+([.-]?\w+)*@(iubh\.de|iubh-fernstudium\.de|iu\.org)+$/.test(v) || 'Keine gültige IU E-Mail-Adresse'
       ],
       password: '',
       passwordRules: [

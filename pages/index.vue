@@ -18,9 +18,11 @@ export default {
       this.$store.commit('initFirebase')
       if (user) {
         // User is signed in; redirect to main page (dashboard)
+        this.$store.commit('setUserLoggedIn', true)
         this.$router.push({ name: 'dashboard' })
       } else {
         // User is signed out; redirect to login page
+        this.$store.commit('setUserLoggedIn', false)
         this.$router.push({ name: 'login' })
       }
     })
