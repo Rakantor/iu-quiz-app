@@ -1,18 +1,21 @@
 <template>
   <v-app dark>
-    <v-app-bar fixed app>
+    <NavigationDrawer ref="navDrawer" />
+    <v-app-bar app clipped-left>
+      <v-app-bar-nav-icon @click="toggleNavDrawer" />
       <v-toolbar-title v-text="title" />
       <v-spacer />
-      <v-btn v-if="loggedIn" icon color="primary" @click="logout">
+      <v-btn icon @click="$vuetify.theme.dark = !$vuetify.theme.dark">
+        <v-icon>mdi-theme-light-dark</v-icon>
+      </v-btn>
+      <v-btn v-if="loggedIn" icon @click="logout">
         <v-icon>mdi-logout-variant</v-icon>
       </v-btn>
     </v-app-bar>
     <v-main>
       <Nuxt />
     </v-main>
-    <v-footer :absolute="!fixed" app>
-      <span>&copy; {{ new Date().getFullYear() }}</span>
-    </v-footer>
+    <FooterApp />
     <ToastComponent />
   </v-app>
 </template>
@@ -34,6 +37,9 @@ export default {
     }
   },
   methods: {
+    toggleNavDrawer () {
+      this.$refs.navDrawer.toggle()
+    },
     logout () {
       signOut(this.$auth).then(() => {
         // Sign-out successful

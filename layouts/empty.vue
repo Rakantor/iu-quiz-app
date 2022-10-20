@@ -3,6 +3,8 @@
     <v-main>
       <Nuxt />
     </v-main>
+    <FooterApp />
+    <ToastComponent />
   </v-app>
 </template>
 

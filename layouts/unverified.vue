@@ -18,6 +18,7 @@
         </v-card>
       </v-container>
     </v-main>
+    <FooterApp />
     <ToastComponent />
   </v-app>
 </template>

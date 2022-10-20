@@ -6,16 +6,6 @@
           {{ id.toUpperCase() }} - {{ course.name }}
         </v-card>
       </v-col>
-      <v-col cols="12" class="text-center">
-        <blockquote class="blockquote">
-          &#8220;First, solve the problem. Then, write the code.&#8221;
-          <footer>
-            <small>
-              <em>&mdash;John Johnson</em>
-            </small>
-          </footer>
-        </blockquote>
-      </v-col>
     </v-row>
   </v-container>
 </template>

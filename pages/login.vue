@@ -128,6 +128,7 @@ import {
 
 export default {
   name: 'LoginPage',
+  layout: 'empty',
   data () {
     return {
       existingUser: true,
