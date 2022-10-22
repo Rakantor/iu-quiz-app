@@ -2,7 +2,7 @@
   <v-container>
     <v-row>
       <v-col v-for="course, id in courses" :key="id">
-        <v-card :width="vCardSize" :height="vCardSize" align="center" justify="center" @click="openCourse">
+        <v-card :width="vCardSize" :height="vCardSize" align="center" justify="center" @click="openCourse(id)">
           {{ id.toUpperCase() }} - {{ course.name }}
         </v-card>
       </v-col>
@@ -11,6 +11,7 @@
 </template>
 
 <script>
+import _cloneDeep from 'lodash-es/cloneDeep'
 import { collection, getDocs } from 'firebase/firestore'
 
 export default {
@@ -39,13 +40,13 @@ export default {
       })
 
       // Save courses in Vuex store
-      this.$store.commit('setCourses', courses)
+      this.$store.commit('setCourses', _cloneDeep(courses))
     })
   },
   methods: {
-    openCourse () {
-      // TODO
-      this.$toast({ content: 'TODO: Eigener Bereich für jeden Kurs.', color: 'info', timeout: 3000 })
+    openCourse (courseID) {
+      this.$store.commit('setSelectedCourse', courseID)
+      this.$router.push(`courses/${courseID}`)
     }
   }
 }
