@@ -1,10 +1,14 @@
 export const state = () => ({
   firebaseInitialized: false,
   userLoggedIn: false,
-  courses: []
+  courses: {},
+  selectedCourse: undefined
 })
 
 export const getters = {
+  getCourseByID: (state) => (courseID) => {
+    return state.courses[courseID]
+  }
 }
 
 export const mutations = {
@@ -16,6 +20,9 @@ export const mutations = {
   },
   setCourses (state, courses) {
     state.courses = courses
+  },
+  setSelectedCourse (state, courseID) {
+    state.selectedCourse = courseID
   }
 }
 
