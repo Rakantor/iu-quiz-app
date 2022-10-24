@@ -2,7 +2,7 @@
   <v-card>
     <ValidationObserver ref="observer" v-slot="{ invalid }">
       <form @submit.prevent="submit">
-        <v-card-title>Frage einreichen</v-card-title>
+        <v-card-title>Geschlossene Frage einreichen</v-card-title>
         <v-card-text>
           <v-row>
             <v-col cols="12">
@@ -37,7 +37,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn depressed outlined color="primary" @click="clear">Reset</v-btn>
+          <v-btn text color="primary" @click="clear">Reset</v-btn>
           <v-btn type="submit" depressed color="primary" :loading="loading" :disabled="invalid">Einreichen</v-btn>
         </v-card-actions>
       </form>
@@ -86,10 +86,10 @@ export default {
         status: 'neu'
       }
 
-      // Atomically add the new question to the "fragen" array field.
+      // Atomically add the new question to the "geschlossen" (fragen/{kursID}/geschlossen) array field.
       const questionsRef = doc(this.$db, 'fragen', this.$store.state.selectedCourse)
       updateDoc(questionsRef, {
-        fragen: arrayUnion(q) // Ref: https://firebase.google.com/docs/firestore/manage-data/add-data#update_elements_in_an_array
+        geschlossen: arrayUnion(q) // Ref: https://firebase.google.com/docs/firestore/manage-data/add-data#update_elements_in_an_array
       }).then((empty) => {
         // Successfully added new question to database
         this.$toast({ content: 'Deine Frage wurde eingereicht!', color: 'success' })
