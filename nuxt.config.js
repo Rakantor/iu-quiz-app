@@ -57,6 +57,10 @@ export default {
     middleware: 'auth'
   },
 
+  env: {
+    firebaseAppCheckDebugToken: process.env.NODE_ENV !== 'production'
+  },
+
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
