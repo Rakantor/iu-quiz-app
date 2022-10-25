@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore'
+import { collection, addDoc } from 'firebase/firestore'
 // We use vee-validate@3 for form validation.
 // https://vee-validate.logaretm.com/v3/guide/basics.html
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
@@ -85,11 +85,9 @@ export default {
         schwierigkeit: []
       }
 
-      // Atomically add the new question to the "offen" (fragen/{kursID}/offen) array field.
-      const questionsRef = doc(this.$db, 'fragen', this.$store.state.selectedCourse)
-      updateDoc(questionsRef, {
-        offen: arrayUnion(q) // Ref: https://firebase.google.com/docs/firestore/manage-data/add-data#update_elements_in_an_array
-      }).then((empty) => {
+      // Add a new document with a generated id.
+      addDoc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenOffen`), q)
+      .then((docRef) => {
         // Successfully added new question to database
         this.$toast({ content: 'Deine Frage wurde eingereicht!', color: 'success' })
       })
