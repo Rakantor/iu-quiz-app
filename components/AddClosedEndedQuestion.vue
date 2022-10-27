@@ -36,6 +36,7 @@
           </v-row>
         </v-card-text>
         <v-card-actions>
+          <v-btn v-if="$config.NODE_ENV !== 'production'" depressed color="warning" @click="addQuestionsForTesting">+10 Fragen</v-btn>
           <v-spacer />
           <v-btn text color="primary" @click="clear">Reset</v-btn>
           <v-btn type="submit" depressed color="primary" :loading="loading" :disabled="invalid">Einreichen</v-btn>
@@ -46,7 +47,7 @@
 </template>
 
 <script>
-import { collection, addDoc } from 'firebase/firestore'
+import { collection, doc, addDoc, writeBatch } from 'firebase/firestore'
 // We use vee-validate@3 for form validation.
 // https://vee-validate.logaretm.com/v3/guide/basics.html
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
@@ -81,12 +82,12 @@ export default {
         erstellt: Date.now() / 1000, // Current UNIX timestamp in seconds
         frage: this.question,
         antworten: this.answers,
-        richtig: this.answers.indexOf(this.correctAnswer),
+        richtig: this.correctAnswer,
         kommentare: this.comment ? [this.comment] : [],
         status: 'neu'
       }
 
-      // Add a new document with a generated id.
+      // Add a new document with a generated id
       addDoc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenGeschlossen`), q)
       .then((docRef) => {
         // Successfully added new question to database
@@ -106,6 +107,44 @@ export default {
       this.correctAnswer = null
       this.comment = ''
       this.$refs.observer.reset()
+    },
+    // TODO: This method is used for writing test data to the database and should be removed in production
+    addQuestionsForTesting () {
+      this.loading = true
+      const answers = ['Antwort 1', 'Antwort 2', 'Antwort 3', 'Antwort 4']
+      const batch = writeBatch(this.$db)
+
+      for (let i = 1; i <= 10; i++) {
+        // Generate random integer between 1 (inlcusive) and 1000 (inclusive)
+        const randomNumber = Math.floor(Math.random() * (1000 - 1 + 1) + 1)
+
+        // Generate random integer between 0 (inlcusive) and 3 (inclusive)
+        const correctAnswer = Math.floor(Math.random() * (3 + 1))
+
+        const q = {
+          ersteller: this.$auth.currentUser.uid, // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.User
+          erstellt: Date.now() / 1000, // Current UNIX timestamp in seconds
+          frage: `Frage ${randomNumber}: Was ist die richtige Antwort? (Richtig: ${correctAnswer+1})`,
+          antworten: answers,
+          richtig: answers[correctAnswer],
+          kommentare: [],
+          status: 'genehmigt'
+        }
+
+        const questionRef = doc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenGeschlossen`))
+        batch.set(questionRef, q)
+      }
+
+      // Commit the batch
+      batch.commit().then((empty) => {
+        // Successfully added new questions to the database
+        this.$toast({ content: '10 Fragen wurden hinzugefügt!', color: 'success' })
+      }).catch((error) => {
+        // Failed to add questions to the database; display error message
+        this.$toast({content: error, color: 'error'})
+      }).then(() => {
+        this.loading = false
+      })
     }
   }
 }
