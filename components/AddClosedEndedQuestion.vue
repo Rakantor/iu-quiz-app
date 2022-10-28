@@ -52,6 +52,7 @@ import { collection, doc, addDoc, writeBatch } from 'firebase/firestore'
 // https://vee-validate.logaretm.com/v3/guide/basics.html
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
 import { required } from 'vee-validate/dist/rules'
+import { ClosedEndedQuestion, ClosedEndedQuestionConverter } from '~/plugins/closed-ended-question'
 
 // Override the default error message of required fields
 extend('required', {
@@ -77,18 +78,19 @@ export default {
     submit () {
       this.loading = true
 
-      const q = {
-        ersteller: this.$auth.currentUser.uid, // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.User
-        erstellt: Date.now() / 1000, // Current UNIX timestamp in seconds
-        frage: this.question,
-        antworten: this.answers,
-        richtig: this.correctAnswer,
-        kommentare: this.comment ? [this.comment] : [],
-        status: 'neu'
-      }
+      const q = new ClosedEndedQuestion(
+        null,
+        this.question,
+        this.answers,
+        this.correctAnswer,
+        this.$auth.currentUser.uid, // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.User
+        Date.now() / 1000, // Current UNIX timestamp in seconds
+        this.comment ? [this.comment] : [],
+        'neu'
+      )
 
       // Add a new document with a generated id
-      addDoc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenGeschlossen`), q)
+      addDoc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenGeschlossen`).withConverter(ClosedEndedQuestionConverter), q)
       .then((docRef) => {
         // Successfully added new question to database
         this.$toast({ content: 'Deine Frage wurde eingereicht!', color: 'success' })
@@ -121,17 +123,18 @@ export default {
         // Generate random integer between 0 (inlcusive) and 3 (inclusive)
         const correctAnswer = Math.floor(Math.random() * (3 + 1))
 
-        const q = {
-          ersteller: this.$auth.currentUser.uid, // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.User
-          erstellt: Date.now() / 1000, // Current UNIX timestamp in seconds
-          frage: `Frage ${randomNumber}: Was ist die richtige Antwort? (Richtig: ${correctAnswer+1})`,
-          antworten: answers,
-          richtig: answers[correctAnswer],
-          kommentare: [],
-          status: 'genehmigt'
-        }
+        const q = new ClosedEndedQuestion(
+          null,
+          `Frage ${randomNumber}: Was ist die richtige Antwort? (Richtig: ${correctAnswer+1})`,
+          answers,
+          answers[correctAnswer],
+          this.$auth.currentUser.uid, // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.User
+          Date.now() / 1000, // Current UNIX timestamp in seconds
+          [],
+          'genehmigt'
+        )
 
-        const questionRef = doc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenGeschlossen`))
+        const questionRef = doc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenGeschlossen`).withConverter(ClosedEndedQuestionConverter))
         batch.set(questionRef, q)
       }
 

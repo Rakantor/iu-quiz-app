@@ -1,5 +1,5 @@
 <template>
-  <v-navigation-drawer v-if="$store.state.userLoggedIn" app clipped :mini-variant="miniVariant">
+  <v-navigation-drawer v-if="$store.state.user" app clipped :mini-variant="miniVariant">
     <v-list>
       <v-list-item link class="px-2" @click="gotoProfilePage">
         <v-list-item-avatar>

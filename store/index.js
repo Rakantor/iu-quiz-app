@@ -1,6 +1,6 @@
 export const state = () => ({
   firebaseInitialized: false,
-  userLoggedIn: false,
+  user: null,
   courses: {},
   selectedCourse: undefined
 })
@@ -15,8 +15,8 @@ export const mutations = {
   initFirebase (state) {
     state.firebaseInitialized = true
   },
-  setUserLoggedIn (state, isLoggedIn) {
-    state.userLoggedIn = isLoggedIn
+  setUser (state, user) {
+    state.user = user
   },
   setCourses (state, courses) {
     state.courses = courses
