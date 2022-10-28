@@ -61,6 +61,10 @@ export default {
     firebaseAppCheckDebugToken: process.env.NODE_ENV !== 'production'
   },
 
+  publicRuntimeConfig: {
+    NODE_ENV: process.env.NODE_ENV
+  },
+
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
