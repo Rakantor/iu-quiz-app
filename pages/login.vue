@@ -163,7 +163,6 @@ export default {
 
         createUserWithEmailAndPassword(this.$auth, this.email, this.password)
         .then((userCredential) => {
-          // TODO: database integration
           // User signed up successfully.
           // The authentication state observer will redirect the user to the main page (dashboard),
           // see pages/index.vue

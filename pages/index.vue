@@ -6,8 +6,8 @@
 
 <script>
 import { onAuthStateChanged } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
-import { UserConverter } from '~/plugins/user'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { User, UserConverter } from '~/plugins/user'
 
 export default {
   name: 'IndexPage',
@@ -33,12 +33,31 @@ export default {
       const ref = doc(this.$db, `benutzer/${this.$auth.currentUser.uid}`).withConverter(UserConverter)
       getDoc(ref).then((docSnap) => {
         if (docSnap.exists()) {
-          this.$store.commit('setUser', docSnap.data())
-          this.$router.push({ name: 'dashboard' })
+          // Successfully retrieved user data from the db.
+          this.redirectToDashboard(docSnap.data())
         } else {
-          this.$toast({ content: 'Benutzer konnte in DB nicht gefunden werden!', color: 'error' })
+          // No user data was found in the database, which means the user has just signed up.
+          this.createUser()
+          
         }
       })
+    },
+    createUser () {
+      const user = new User()
+
+      // Add a new document in collection "users"
+      setDoc(doc(this.$db, 'benutzer', this.$auth.currentUser.uid).withConverter(UserConverter), user)
+      .then((docSnap) => {
+        this.redirectToDashboard()
+      })
+      .catch((error) => {
+        // Couldn't create user data document
+        this.$toast({ content: error, color: 'error' })
+      })
+    },
+    redirectToDashboard (user) {
+      this.$store.commit('setUser', user)
+      this.$router.push({ name: 'dashboard' })
     }
   }
 }

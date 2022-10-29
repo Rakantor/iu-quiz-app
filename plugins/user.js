@@ -2,9 +2,11 @@ export class User {
   constructor (gamesStarted) {
     this.gamesStarted = []
 
-    gamesStarted.forEach(e => {
-      this.gamesStarted.push({ course: e.kurs, game: e.spiel })
-    })
+    if (gamesStarted && gamesStarted.length > 0) {
+      gamesStarted.forEach(e => {
+        this.gamesStarted.push({ course: e.kurs, game: e.spiel })
+      })
+    }
   }
 }
 
