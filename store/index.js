@@ -23,6 +23,19 @@ export const mutations = {
   },
   setSelectedCourse (state, courseID) {
     state.selectedCourse = courseID
+  },
+  addGameInProgress (state, { courseID, gameID }) {
+    const index = state.user.gamesStarted.findIndex(e => e.course === courseID)
+    if (index !== -1) {
+      state.user.gamesStarted[index].course = courseID
+      state.user.gamesStarted[index].game = gameID
+    } else {
+      state.user.gamesStarted.push({ course: courseID, game: gameID })
+    }
+  },
+  removeGameInProgress (state, courseID) {
+    const index = state.user.gamesStarted.findIndex(e => e.course === courseID)
+    state.user.gamesStarted.splice(index, 1)
   }
 }
 

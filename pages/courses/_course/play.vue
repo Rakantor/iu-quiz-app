@@ -34,7 +34,10 @@
 </template>
 
 <script>
-import { collection, doc, query, where, orderBy, limit, getDocs, getDoc, addDoc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore'
+import {
+  collection, doc, getDocs, getDoc, addDoc, updateDoc,
+  query, where, orderBy, limit, arrayUnion, arrayRemove, writeBatch
+} from 'firebase/firestore'
 import _sampleSize from 'lodash-es/sampleSize'
 import _shuffle from 'lodash-es/shuffle'
 import _capitalize from 'lodash-es/capitalize'
@@ -78,10 +81,10 @@ export default {
   created () {
     this.courseID = this.$route.params.course
     this.getQuestions().then(() => {
-      const gid = this.$store.state.user.gamesStarted.find(e => e.course === this.courseID).game
+      const gid = this.$store.state.user.gamesStarted.find(e => e.course === this.courseID)
 
-      if (gid) {
-        this.resumeGame(gid)
+      if (gid && gid.game) {
+        this.resumeGame(gid.game)
       } else {
         // There's no game to resume. Find a game.
         this.findGame()
@@ -168,14 +171,27 @@ export default {
       this.game.player2answers = []
       this.selectedQuestions = this.questions.filter(q => game.questions.includes(q.id))
 
-      const cityRef = doc(this.$db, `kurse/${this.courseID}/spiele/${this.game.id}`).withConverter(GameConverter)
-      setDoc(cityRef, this.game, { merge: true })
-      .then((empty) => {
+      // Get a new write batch
+      const batch = writeBatch(this.$db)
+
+      // Update the users games in progress
+      const userRef = doc(this.$db, `benutzer/${this.$auth.currentUser.uid}`)
+      batch.update(userRef, {
+        spieleBegonnen: arrayUnion({ kurs: this.courseID, spiel: this.game.id })
+      })
+      this.$store.commit('addGameInProgress', { courseID: this.courseID, gameID: this.game.id })
+
+      // Set the updated information of the game
+      const gameRef = doc(this.$db, `kurse/${this.courseID}/spiele/${this.game.id}`).withConverter(GameConverter)
+      batch.set(gameRef, this.game, { merge: true })
+
+      // Commit the batch
+      batch.commit().then((empty) => {
         // Start the game
         this.nextQuestion()
       })
       .catch((error) => {
-        // Query failed; display error message
+        // Batch execution failed; display error message
         this.$toast({ content: error, color: 'error' })
       })
     },
@@ -200,9 +216,17 @@ export default {
       addDoc(collection(this.$db, `kurse/${this.courseID}/spiele`).withConverter(GameConverter), g)
       .then((docRef) => {
         // Successfully added a new game to the database.
-        // Start the game
         this.game = g
         this.game.id = docRef.id
+
+        // Update the users games in progress
+        const userRef = doc(this.$db, `benutzer/${this.$auth.currentUser.uid}`)
+        updateDoc(userRef, {
+          spieleBegonnen: arrayUnion({ kurs: this.courseID, spiel: this.game.id })
+        })
+        this.$store.commit('addGameInProgress', { courseID: this.courseID, gameID: this.game.id })
+
+        // Start the game
         this.nextQuestion()
       })
       .catch((error) => {
@@ -213,11 +237,11 @@ export default {
     updateGame() {
       const gameRef = doc(this.$db, `kurse/${this.courseID}/spiele/${this.game.id}`)
 
-      // Atomically add a new region to the "regions" array field.
+      // Atomically add a new answer to the "player[ID]answers" array field.
       updateDoc(gameRef, {
           [`spieler${this.playerNumber}antworten`]: arrayUnion({ frage: this.selectedQuestion.id, antwort: this.submittedAnswer })
       }).then((empty) => {
-        // TODO
+        // Query execution was successful. Nothing else to do here.
       }).catch((error) => {
         // Failed to update the game; display error message
         this.$toast({content: error, color: 'error'})
@@ -255,9 +279,17 @@ export default {
       }, interval)
     },
     finishGame () {
-      // TODO
-      console.log('GAME ENDED!')
-      this.$router.push(`courses/${this.courseID}`)
+      this.$store.commit('removeGameInProgress', this.courseID)
+
+      const ref = doc(this.$db, `benutzer/${this.$auth.currentUser.uid}`)
+
+      updateDoc(ref, {
+        spieleBegonnen: arrayRemove({ kurs: this.courseID, spiel: this.game.id })
+      }).then((empty) => {
+        this.$router.push(`/courses/${this.courseID}`)
+      }).catch((error) => {
+        this.$toast({content: error, color: 'error'})
+      })
     }
   }
 }
