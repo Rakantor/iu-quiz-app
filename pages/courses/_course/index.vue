@@ -4,8 +4,8 @@
       <v-col cols="auto">
         <v-btn depressed color="primary" @click="playVersus">Challenge Mode</v-btn>
       </v-col>
-      <v-col cols="auto">
-        <v-btn depressed color="primary" @click="playCoop">Co-op Mode</v-btn>
+      <v-col cols="12">
+        <Coop :courseID="courseID" />
       </v-col>
       <v-col cols="12">
         <AddClosedEndedQuestion />
@@ -34,10 +34,6 @@ export default {
     playVersus () {
       // TODO
       this.$router.push(`${this.$route.path}/play`)
-    },
-    playCoop () {
-      // TODO
-      this.$toast({ content: 'Todo: Co-op Mode implementieren', color: 'info' })
     }
   }
 }
