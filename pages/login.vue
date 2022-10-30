@@ -1,5 +1,8 @@
 <template>
   <v-container fill-height>
+    <!-- TODO: For demo purposes only. Delete in production. -->
+    <DemoInfoDialog />
+    <!-- -->
     <v-card v-if="existingUser" width="500px" elevation="12" class="mx-auto">
       <v-card-text>
         <v-form ref="loginForm" v-model="valid">
