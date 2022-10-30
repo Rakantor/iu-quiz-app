@@ -80,6 +80,7 @@ export default {
           info: colors.blue.base,
           success: colors.green.base,
           warning: colors.orange.darken1,
+          background: '#f1f2f6' // same as MyCampus
         },
         dark: {
           // Vuetify default dark theme colors

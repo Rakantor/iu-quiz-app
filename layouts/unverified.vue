@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app :style="{ background: $vuetify.theme.themes[theme].background }">
     <v-main>
       <v-container fill-height>
         <v-card max-width="500px" class="mx-auto">
@@ -35,6 +35,9 @@ export default {
     }
   },
   computed: {
+    theme () {
+      return (this.$vuetify.theme.dark) ? 'dark' : 'light'
+    },
     userEmail () {
       return this.$auth.currentUser.email
     }
