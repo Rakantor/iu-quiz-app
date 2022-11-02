@@ -1,6 +1,9 @@
 <template>
   <v-container fluid>
     <v-row>
+      <v-col v-if="$store.getters.isAdmin" cols="12">
+        <AddCourse />
+      </v-col>
       <v-col v-for="(course, id) in courses" :key="id" cols="12" lg="6">
         <v-card flat width="100%" class="rounded-lg" @click="openCourse(id)">
           <v-row no-gutters class="flex-nowrap">
@@ -26,16 +29,12 @@
 <script>
 import _cloneDeep from 'lodash-es/cloneDeep'
 import { collection, getDocs } from 'firebase/firestore'
-import { demoAccounts } from '~/components/DemoInfoDialog.vue'
 
 export default {
   name: 'DashboardPage',
   layout ({ $auth }) {
     // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#currentuser
-    // return $auth.currentUser.emailVerified ? 'default' : 'unverified'
-
-    // TODO: For demo purposes only. Delete in production.
-    return $auth.currentUser.emailVerified || demoAccounts.includes($auth.currentUser.email) ? 'default' : 'unverified'
+    return $auth.currentUser.emailVerified ? 'default' : 'unverified'
   },
   data () {
     return {
