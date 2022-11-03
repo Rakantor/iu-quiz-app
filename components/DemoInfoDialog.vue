@@ -3,9 +3,9 @@
 <template>
   <v-dialog v-model="show" width="500">
     <template #activator="{ on, attrs }">
-      <v-btn fixed top left dark color="red lighten-2" v-bind="attrs" v-on="on">
+      <v-btn fixed top dark color="red lighten-2" :style="{left: '50%', transform:'translateX(-50%)'}" v-bind="attrs" v-on="on">
         <v-icon left>mdi-alert-circle-outline</v-icon>
-        Demo-Account Info
+        Mit Demo-Account Anmelden
       </v-btn>
     </template>
     <v-card elevation="12" class="mx-auto">
@@ -44,7 +44,6 @@
 
 <script>
 import { signInWithEmailAndPassword } from 'firebase/auth'
-export const demoAccounts = ['max.muster.test@iubh-fernstudium.de', 'tutor.test@iu.org', 'admin.test@iu.org']
 
 export default {
   data () {

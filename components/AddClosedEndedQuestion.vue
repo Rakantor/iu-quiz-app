@@ -52,7 +52,7 @@ import { collection, doc, addDoc, writeBatch } from 'firebase/firestore'
 // https://vee-validate.logaretm.com/v3/guide/basics.html
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
 import { required } from 'vee-validate/dist/rules'
-import { ClosedEndedQuestion, ClosedEndedQuestionConverter } from '~/plugins/closed-ended-question'
+import { ClosedEndedQuestion, ClosedEndedQuestionConverter, states } from '~/plugins/closed-ended-question'
 
 // Override the default error message of required fields
 extend('required', {
@@ -75,6 +75,11 @@ export default {
     }
   },
   methods: {
+    isAuthorized () {
+      const isTutor = this.$auth.currentUser.email.endsWith('@iu.org')
+      const isAdmin = this.$store.getters.isAdmin
+      return isTutor || isAdmin
+    },
     submit () {
       this.loading = true
 
@@ -86,14 +91,17 @@ export default {
         this.$auth.currentUser.uid, // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.User
         Date.now() / 1000, // Current UNIX timestamp in seconds
         this.comment ? [this.comment] : [],
-        'neu'
+        this.isAuthorized() ? states.approved : states.new
       )
 
       // Add a new document with a generated id
       addDoc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenGeschlossen`).withConverter(ClosedEndedQuestionConverter), q)
       .then((docRef) => {
         // Successfully added new question to database
-        this.$toast({ content: 'Deine Frage wurde eingereicht!', color: 'success' })
+        const content = this.isAuthorized()
+          ? 'Die Frage wurde hinzugefügt!'
+          : 'Deine Frage wurde eingereicht und wartet auf Bestätigung durch den Tutor!'
+        this.$toast({ content, color: 'success' })
       })
       .catch((error) => {
         // Failed to add question to database; display error message
@@ -131,7 +139,7 @@ export default {
           this.$auth.currentUser.uid, // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.User
           Date.now() / 1000, // Current UNIX timestamp in seconds
           [],
-          'genehmigt'
+          states.approved
         )
 
         const questionRef = doc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenGeschlossen`).withConverter(ClosedEndedQuestionConverter))

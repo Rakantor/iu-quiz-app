@@ -11,6 +11,12 @@ export class ClosedEndedQuestion {
   }
 }
 
+export const states = {
+  new: 'neu',
+  approved: 'genehmigt',
+  declined: 'abgelehnt'
+}
+
 // Firestore data converter
 export const ClosedEndedQuestionConverter = {
   toFirestore: (closedEndedQuestion) => {

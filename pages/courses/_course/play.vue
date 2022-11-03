@@ -41,7 +41,7 @@ import {
 import _sampleSize from 'lodash-es/sampleSize'
 import _shuffle from 'lodash-es/shuffle'
 import _capitalize from 'lodash-es/capitalize'
-import { ClosedEndedQuestionConverter } from '~/plugins/closed-ended-question'
+import { ClosedEndedQuestionConverter, states } from '~/plugins/closed-ended-question'
 import { Game, GameConverter } from '~/plugins/game'
 
 export default {
@@ -101,7 +101,7 @@ export default {
 
       // Create a query against the collection.
       // Only questions with the status "approved" (=genehmigt) should be fetched from the database
-      const q = query(questionsRef, where('status', '==', 'genehmigt'))
+      const q = query(questionsRef, where('status', '==', states.approved))
 
       // Execute the query
       return getDocs(q).then((querySnapshot) => {

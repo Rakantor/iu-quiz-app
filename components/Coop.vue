@@ -1,17 +1,22 @@
 <template>
-  <v-expansion-panels>
-    <v-expansion-panel
-      v-for="(item, i) in questions"
-      :key="i"
-    >
-      <v-expansion-panel-header>
-        {{ item.question }}
-      </v-expansion-panel-header>
-      <v-expansion-panel-content class="text-pre-wrap">
-        <div class="text-pre-wrap">{{ item.solution }}</div>
-      </v-expansion-panel-content>
-    </v-expansion-panel>
-  </v-expansion-panels>
+  <v-container fluid>
+    <v-subheader class="text-h5 text--primary">Offene Fragen</v-subheader>
+    <v-divider></v-divider>
+    <v-expansion-panels focusable class="my-3">
+      <v-expansion-panel
+        v-for="(item, i) in questions"
+        :key="i"
+      >
+        <v-expansion-panel-header>
+          {{ item.question }}
+        </v-expansion-panel-header>
+        <v-expansion-panel-content class="text-pre-wrap">
+          <div class="text-pre-wrap">{{ item.solution }}</div>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </v-expansion-panels>
+    <AddOpenEndedQuestion />
+  </v-container>
 </template>
 
 <script>
@@ -21,7 +26,7 @@ import { OpenEndedQuestionConverter } from '~/plugins/open-ended-question'
 export default {
   name: 'CoopComponent',
   props: {
-    courseID: {
+    courseId: {
       type: String,
       required: true
     }
@@ -37,7 +42,7 @@ export default {
   methods: {
     getQuestions () {
       // Create a reference to the open-ended questions collection of the currently selected course
-      const questionsRef = collection(this.$db, `kurse/${this.courseID}/fragenOffen`).withConverter(OpenEndedQuestionConverter)
+      const questionsRef = collection(this.$db, `kurse/${this.courseId}/fragenOffen`).withConverter(OpenEndedQuestionConverter)
 
       // Execute the query
       getDocs(questionsRef).then((querySnapshot) => {
