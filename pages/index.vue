@@ -18,12 +18,20 @@ export default {
     // whenever the user's sign-in state changes.
     onAuthStateChanged(this.$auth, (user) => {
       this.$store.commit('initFirebase')
+
       if (user) {
         // User is signed in; get user data from db, then redirect to main page (dashboard)
         this.getUser()
+
+        // Get user claims
+        // Ref: https://firebase.google.com/docs/auth/admin/custom-claims
+        user.getIdTokenResult().then((idTokenResult) => {
+          this.$store.commit('setIdTokenResult', idTokenResult)
+        })
       } else {
         // User is signed out; redirect to login page
         this.$store.commit('setUser', null)
+        this.$store.commit('setIdTokenResult', null)
         this.$router.push({ name: 'login' })
       }
     })

@@ -16,16 +16,11 @@
 </template>
 
 <script>
-import { demoAccounts } from '~/components/DemoInfoDialog.vue'
-
 export default {
   name: 'HelpPage',
   layout ({ $auth }) {
     // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#currentuser
-    // return $auth.currentUser.emailVerified ? 'default' : 'unverified'
-
-    // TODO: For demo purposes only. Delete in production.
-    return $auth.currentUser.emailVerified || demoAccounts.includes($auth.currentUser.email) ? 'default' : 'unverified'
+    return $auth.currentUser.emailVerified ? 'default' : 'unverified'
   },
 }
 </script>
