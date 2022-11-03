@@ -7,6 +7,7 @@
 <script>
 import { onAuthStateChanged } from 'firebase/auth'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
+import _capitalize from 'lodash-es/capitalize'
 import { User, UserConverter } from '~/plugins/user'
 
 export default {
@@ -51,7 +52,8 @@ export default {
       })
     },
     createUser () {
-      const user = new User()
+      const displayName = _capitalize(this.$auth.currentUser.email.split('.')[0])
+      const user = new User(displayName, [])
 
       // Add a new document in collection "users"
       setDoc(doc(this.$db, 'benutzer', this.$auth.currentUser.uid).withConverter(UserConverter), user)

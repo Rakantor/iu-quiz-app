@@ -1,12 +1,12 @@
 <template>
   <v-navigation-drawer v-if="$store.state.user" app dark clipped :mini-variant="miniVariant">
     <v-list>
-      <v-list-item link class="px-2" @click="gotoProfilePage">
+      <v-list-item link class="px-2" :to="{ name: 'user' }">
         <v-list-item-avatar>
           <v-img src="https://avatarfiles.alphacoders.com/207/207426.png"></v-img>
         </v-list-item-avatar>
           <v-list-item-content>
-          <v-list-item-title>{{ userName }}</v-list-item-title>
+          <v-list-item-title>{{ $store.state.user.displayName }}</v-list-item-title>
           <v-list-item-subtitle>{{ $auth.currentUser.email }}</v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>
@@ -30,27 +30,15 @@
 </template>
 
 <script>
-import _capitalize from 'lodash-es/capitalize'
-
 export default {
   data () {
     return {
       miniVariant: false
     }
   },
-  computed: {
-    userName () {
-      const givenName = this.$auth.currentUser.email.split('.')[0]
-      return _capitalize(givenName)
-    }
-  },
   methods: {
     toggle () {
       this.miniVariant = !this.miniVariant
-    },
-    gotoProfilePage () {
-      // TODO
-      this.$toast({ content: 'TODO: Benutzerbereich implementieren', color: 'info' })
     }
   }
 }

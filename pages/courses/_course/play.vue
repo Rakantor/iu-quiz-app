@@ -40,7 +40,6 @@ import {
 } from 'firebase/firestore'
 import _sampleSize from 'lodash-es/sampleSize'
 import _shuffle from 'lodash-es/shuffle'
-import _capitalize from 'lodash-es/capitalize'
 import { ClosedEndedQuestionConverter, states } from '~/plugins/closed-ended-question'
 import { Game, GameConverter } from '~/plugins/game'
 
@@ -92,9 +91,6 @@ export default {
     })
   },
   methods: {
-    generateUserName () {
-      return _capitalize(this.$auth.currentUser.email.split('.')[0])
-    },
     getQuestions () {
       // Create a reference to the closed-ended questions collection of the currently selected course
       const questionsRef = collection(this.$db, `kurse/${this.courseID}/fragenGeschlossen`).withConverter(ClosedEndedQuestionConverter)
@@ -167,7 +163,7 @@ export default {
     joinGame (game) {
       this.game = game
       this.game.player2id = this.$auth.currentUser.uid
-      this.game.player2name = this.generateUserName()
+      this.game.player2name = this.$store.state.user.displayName
       this.game.player2answers = []
       this.selectedQuestions = this.questions.filter(q => game.questions.includes(q.id))
 
@@ -205,7 +201,7 @@ export default {
         this.selectedQuestions.map(q => q.id),
         Date.now() / 1000, // Current UNIX timestamp in seconds
         this.$auth.currentUser.uid,
-        this.generateUserName(),
+        this.$store.state.user.displayName,
         [],
         '',
         '',

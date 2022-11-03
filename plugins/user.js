@@ -1,5 +1,6 @@
 export class User {
-  constructor (gamesStarted) {
+  constructor (displayName, gamesStarted) {
+    this.displayName = displayName
     this.gamesStarted = []
 
     if (gamesStarted && gamesStarted.length > 0) {
@@ -19,11 +20,12 @@ export const UserConverter = {
     })
 
     return {
+      anzeigename: user.displayName,
       spieleBegonnen
     }
   },
   fromFirestore: (snapshot, options) => {
     const data = snapshot.data(options)
-    return new User(data.spieleBegonnen)
+    return new User(data.anzeigename, data.spieleBegonnen)
   }
 }

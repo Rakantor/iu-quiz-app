@@ -25,6 +25,9 @@ export const mutations = {
   setUser (state, user) {
     state.user = user
   },
+  setUserDisplayName (state, name) {
+    this._vm.$set(state.user, 'displayName', name)
+  },
   setCourses (state, courses) {
     state.courses = courses
   },
