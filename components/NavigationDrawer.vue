@@ -1,5 +1,12 @@
 <template>
-  <v-navigation-drawer v-if="$store.state.user" app dark clipped :mini-variant="miniVariant">
+  <v-navigation-drawer
+    v-if="$store.state.user"
+    v-model="drawer"
+    app dark clipped
+    :mini-variant="mini"
+    :permanent="!mobile"
+    :touchless="!mobile"
+  >
     <v-list>
       <v-list-item link class="px-2" :to="{ name: 'user' }">
         <v-list-item-avatar>
@@ -7,7 +14,6 @@
         </v-list-item-avatar>
           <v-list-item-content>
           <v-list-item-title>{{ $store.state.user.displayName }}</v-list-item-title>
-          <v-list-item-subtitle>{{ $auth.currentUser.email }}</v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>
     </v-list>
@@ -33,12 +39,23 @@
 export default {
   data () {
     return {
+      drawer: true,
       miniVariant: false
+    }
+  },
+  computed: {
+    mobile () {
+      return this.$vuetify.breakpoint.smAndDown
+    },
+    mini () {
+      if (this.mobile) return false
+      else return this.miniVariant
     }
   },
   methods: {
     toggle () {
-      this.miniVariant = !this.miniVariant
+      if (this.mobile) this.drawer = !this.drawer
+      else this.miniVariant = !this.miniVariant
     }
   }
 }

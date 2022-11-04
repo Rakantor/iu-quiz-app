@@ -27,7 +27,7 @@
     </v-row>
   </v-container>
   <v-container v-else fluid class="fill-height">
-    <v-card flat color="transparent" class="mx-auto">
+    <v-card color="transparent" class="mx-auto">
       <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
     </v-card>
   </v-container>

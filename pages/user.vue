@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-sheet class="rounded-lg pa-4">
+    <v-card class="pa-4">
       <v-row align="center">
         <v-col cols="auto" style="position: relative">
           <v-avatar size="200">
@@ -35,7 +35,7 @@
           </v-btn>
         </v-col>
       </v-row>
-    </v-sheet>
+    </v-card>
   </v-container>
 </template>
 

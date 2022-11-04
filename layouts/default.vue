@@ -10,9 +10,7 @@
         <v-icon>mdi-theme-light-dark</v-icon>
       </v-btn>
       -->
-      <v-btn v-if="loggedIn" icon @click="logout">
-        <v-icon>mdi-logout-variant</v-icon>
-      </v-btn>
+      <v-img src="/iu-logo.svg" contain class="svg flex-grow-0 flex-shrink-1"></v-img>
     </v-app-bar>
     <v-main>
       <Nuxt />
@@ -23,8 +21,6 @@
 </template>
 
 <script>
-import { signOut } from 'firebase/auth'
-
 export default {
   name: 'DefaultLayout',
   data() {
@@ -44,17 +40,13 @@ export default {
   methods: {
     toggleNavDrawer () {
       this.$refs.navDrawer.toggle()
-    },
-    logout () {
-      signOut(this.$auth).then(() => {
-        // Sign-out successful
-        // The authentication state observer will redirect the user to the main page (dashboard),
-        // see pages/index.vue
-      }).catch((error) => {
-        // An error happened.
-        this.$toast({ content: error, color: 'error' })
-      })
     }
   }
 }
 </script>
+
+<style scoped>
+.svg {
+  filter: brightness(0) invert(1);
+}
+</style>

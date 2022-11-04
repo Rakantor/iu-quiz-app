@@ -53,7 +53,7 @@ export default {
     },
     createUser () {
       const displayName = _capitalize(this.$auth.currentUser.email.split('.')[0])
-      const user = new User(displayName, [])
+      const user = new User(displayName, [], [])
 
       // Add a new document in collection "users"
       setDoc(doc(this.$db, 'benutzer', this.$auth.currentUser.uid).withConverter(UserConverter), user)

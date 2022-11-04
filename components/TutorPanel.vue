@@ -1,12 +1,11 @@
 <template>
   <v-container v-if="newQuestions.length > 0" fluid>
-    <v-subheader class="text-h5 text--primary">
-      <v-badge color="primary" offset-x="-5" offset-y="10" :content="newQuestions.length">
-        Neue Fragen
-      </v-badge>
-    </v-subheader>
-    <v-divider></v-divider>
-    <v-card flat class="my-3">
+    <v-card class="my-3">
+      <v-card-title class="text-h5 text--primary">
+        <v-badge color="primary" offset-x="-5" offset-y="10" :content="newQuestions.length">
+          Neue Fragen
+        </v-badge>
+      </v-card-title>
       <v-window
         continuous
         show-arrows
@@ -14,7 +13,7 @@
         <v-window-item
           v-for="question, index in newQuestions" :key="index"
         >
-          <v-card flat max-width="500" class="mx-auto">
+          <v-card max-width="500" class="mx-auto">
             <v-card-title>{{ question.question }}</v-card-title>
             <v-card-text>
               <p>

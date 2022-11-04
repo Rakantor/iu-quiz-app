@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" max-width="500" persistent>
     <template #activator="{ on, attrs }">
-      <v-card flat width="100%" class="rounded-lg" v-bind="attrs" v-on="on">
+      <v-card width="100%" v-bind="attrs" v-on="on">
         <v-card-text class="text-h6">
           <v-icon left x-large>mdi-plus</v-icon>
           Kurs hinzufügen

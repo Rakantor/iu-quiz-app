@@ -3,8 +3,12 @@
     <!-- TODO: For demo purposes only. Delete in production. -->
     <DemoInfoDialog />
     <!-- -->
-    <v-card v-if="existingUser" width="500px" elevation="12" class="mx-auto">
-      <v-card-text>
+    <v-card width="500" elevation="12" class="mx-auto">
+      <v-card-title class="mb-3">
+        <span class="text-h3 font-weight-black flex-grow-1 flex-shrink-0">Quiz App</span>
+        <v-img src="/iu-logo.svg" height="40" contain class="flex-grow-0 flex-shrink-1"></v-img>
+      </v-card-title>
+      <v-card-text v-if="existingUser">
         <v-form ref="loginForm" v-model="valid">
           <v-text-field
             v-model="email"
@@ -28,18 +32,15 @@
           color="primary"
           :loading="loading"
           :disabled="loading"
+          class="mt-3"
           @click="signIn"
         >
           Anmelden
         </v-btn>
-      </v-card-text>
-      <v-card-text>
-        <v-btn text block color="primary" @click="existingUser = false">Noch kein Konto?</v-btn>
+        <v-btn text block color="primary" class="mt-3" @click="existingUser = false">Noch kein Konto?</v-btn>
         <v-btn text block color="primary" @click="showPwResetDialog = true">Passwort vergessen?</v-btn>
       </v-card-text>
-    </v-card>
-    <v-card v-else width="500px" elevation="12" class="mx-auto">
-      <v-card-text>
+      <v-card-text v-else>
         <v-form ref="signupForm" v-model="valid">
           <v-text-field
             v-model="email"
@@ -113,7 +114,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" outlined @click="showPwResetDialog = false">Abbrechen</v-btn>
+          <v-btn color="primary" text @click="showPwResetDialog = false">Abbrechen</v-btn>
           <v-btn color="primary" depressed :loading="loading" :disabled="loading" @click="resetPassword">Link senden</v-btn>
         </v-card-actions>
       </v-card>
@@ -139,7 +140,7 @@ export default {
       valid: false,
       showPassword: false,
       showPwResetDialog: false,
-      defaultErrorReqField: 'Feld darf nicht leer sein',
+      defaultErrorReqField: 'Pflichtfeld',
       email: '',
       emailRules: [
         v => !!v || this.defaultErrorReqField,
