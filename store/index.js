@@ -1,3 +1,5 @@
+import _pick from 'lodash-es/pick'
+
 export const state = () => ({
   firebaseInitialized: false,
   idTokenResult: null,
@@ -12,6 +14,10 @@ export const getters = {
   },
   getCourseByID: (state) => (courseID) => {
     return state.courses[courseID]
+  },
+  getFavoriteCourses (state) {
+    // Ref: https://lodash.com/docs/#pick
+    return _pick(state.courses, state.user.courses)
   }
 }
 
@@ -30,6 +36,13 @@ export const mutations = {
   },
   setCourses (state, courses) {
     state.courses = courses
+  },
+  addFavoriteCourse (state, courseID) {
+    state.user.courses.push(courseID)
+  },
+  removeFavoriteCourse (state, courseID) {
+    const index = state.user.courses.findIndex(e => e === courseID)
+    state.user.courses.splice(index, 1)
   },
   setCourse (state, { courseID, courseData }) {
     this._vm.$set(state.courses, courseID, courseData)

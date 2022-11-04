@@ -1,26 +1,31 @@
 <template>
-  <v-container fluid>
+  <v-container v-if="!coursesLoaded" fluid fill-height>
+    <v-card color="transparent" class="mx-auto">
+      <v-progress-circular indeterminate color="primary" size="32"></v-progress-circular>
+    </v-card>
+  </v-container>
+  <v-container v-else fluid>
     <v-row>
-      <v-col v-if="$store.getters.isAdmin" cols="12">
-        <AddCourse />
+      <v-col cols="12">
+        <v-tabs v-model="tab" color="primary" background-color="transparent" centered>
+          <v-tab>Meine Kurse ({{ Object.keys(userCourses).length }})</v-tab>
+          <v-tab>Alle Kurse ({{ Object.keys(allCourses).length }})</v-tab>
+        </v-tabs>
       </v-col>
-      <v-col v-for="(course, id) in courses" :key="id" cols="12" lg="6">
-        <v-card flat width="100%" class="rounded-lg" @click="openCourse(id)">
-          <v-row no-gutters class="flex-nowrap">
-            <v-col cols="auto">
-              <v-img
-                src="https://www.onlinecollegeplan.com/wp-content/uploads/2018/05/computer-programming.jpg"
-                :width="imgSize"
-                :height="imgSize"
-                class="rounded-l-lg"
-              ></v-img>
-            </v-col>
-            <v-col cols="auto">
-              <v-card-title class="text--secondary text-subtitle-1">{{ id.toUpperCase() }}</v-card-title>
-              <v-card-subtitle class="text--primary text-h6 text-wrap">{{ course.name }}</v-card-subtitle>
-            </v-col>
-          </v-row>
-        </v-card>
+      <v-col cols="12">
+        <v-tabs-items v-model="tab" style="background-color: transparent !important;">
+          <v-tab-item>
+            <CourseList :courses="userCourses" />
+          </v-tab-item>
+          <v-tab-item>
+            <v-row v-if="$store.getters.isAdmin">
+              <v-col cols="12">
+                <AddCourse />
+              </v-col>
+            </v-row>
+            <CourseList :courses="allCourses" />
+          </v-tab-item>
+        </v-tabs-items>
       </v-col>
     </v-row>
   </v-container>
@@ -29,6 +34,7 @@
 <script>
 import _cloneDeep from 'lodash-es/cloneDeep'
 import { collection, getDocs } from 'firebase/firestore'
+import _isEmpty from 'lodash-es/isEmpty'
 
 export default {
   name: 'DashboardPage',
@@ -38,17 +44,22 @@ export default {
   },
   data () {
     return {
-      imgSize: 125
+      coursesLoaded: false,
+      tab: 0
     }
   },
   computed: {
-    courses () {
+    allCourses () {
       return this.$store.state.courses
+    },
+    userCourses () {
+      return this.$store.getters.getFavoriteCourses
     }
   },
   created () {
     // Load all courses from the database and convert to JS object
-    getDocs(collection(this.$db, 'kurse')).then(querySnapshot => {
+    getDocs(collection(this.$db, 'kurse'))
+    .then(querySnapshot => {
       const courses = {}
       querySnapshot.forEach((doc) => {
         // doc.data() is never undefined for query doc snapshots
@@ -57,13 +68,15 @@ export default {
 
       // Save courses in Vuex store
       this.$store.commit('setCourses', _cloneDeep(courses))
+
+      // Switch to the "All Courses" tab (index = 1) if the student doesn't have any favorite courses
+      this.tab = _isEmpty(this.userCourses) ? 1 : 0
+      this.coursesLoaded = true
     })
-  },
-  methods: {
-    openCourse (courseID) {
-      this.$store.commit('setSelectedCourse', courseID)
-      this.$router.push(`courses/${courseID}`)
-    }
+    .catch((error) => {
+      // Couldn't get list of courses from the db; display error message
+      this.$toast({ content: error, color: 'error' })
+    })
   }
 }
 </script>
