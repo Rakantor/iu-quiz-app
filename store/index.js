@@ -37,6 +37,9 @@ export const mutations = {
   setCourses (state, courses) {
     state.courses = courses
   },
+  initCourse (state, courseID) {
+    state.user.setGames({ [courseID]: {} })
+  },
   addFavoriteCourse (state, courseID) {
     state.user.courses.push(courseID)
   },
