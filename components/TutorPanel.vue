@@ -1,47 +1,45 @@
 <template>
-  <v-container v-if="newQuestions.length > 0" fluid>
-    <v-card class="my-3">
-      <v-card-title class="text-h5 text--primary">
-        <v-badge color="primary" offset-x="-5" offset-y="10" :content="newQuestions.length">
-          Neue Fragen
-        </v-badge>
-      </v-card-title>
-      <v-window
-        continuous
-        show-arrows
+  <v-card v-if="newQuestions.length > 0">
+    <v-card-title>
+      <v-badge color="primary" offset-x="-5" offset-y="10" :content="newQuestions.length">
+        Neue Fragen
+      </v-badge>
+    </v-card-title>
+    <v-window
+      continuous
+      show-arrows
+    >
+      <v-window-item
+        v-for="question, index in newQuestions" :key="index"
       >
-        <v-window-item
-          v-for="question, index in newQuestions" :key="index"
-        >
-          <v-card max-width="500" class="mx-auto">
-            <v-card-title>{{ question.question }}</v-card-title>
-            <v-card-text>
-              <p>
-                <ol v-for="answer, i in question.answers" :key="i" :start="i+1">
-                  <li>{{ answer }}</li>
-                </ol>
-              </p>
-              <p>Richtig: {{ question.correctAnswer }}</p>
-              <p v-if="question.comments.length > 0">
-                User-Kommentar:<br />
-                {{ question.comments[0] }}
-              </p>
-            </v-card-text>
-            <v-divider></v-divider>
-            <v-card-actions>
-              <v-btn icon large color="success" @click="updateQuestion(question, true)">
-                <v-icon>mdi-check</v-icon>
-              </v-btn>
-              <v-spacer></v-spacer>
-              <v-btn icon large color="error" @click="updateQuestion(question, false)">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-window-item>
-      </v-window>
-    </v-card>
-  </v-container>
+        <v-card max-width="500" class="mx-auto">
+          <v-card-title>{{ question.question }}</v-card-title>
+          <v-card-text>
+            <p>
+              <ol v-for="answer, i in question.answers" :key="i" :start="i+1">
+                <li>{{ answer }}</li>
+              </ol>
+            </p>
+            <p>Richtig: {{ question.correctAnswer }}</p>
+            <p v-if="question.comments.length > 0">
+              User-Kommentar:<br />
+              {{ question.comments[0] }}
+            </p>
+          </v-card-text>
+          <v-divider></v-divider>
+          <v-card-actions>
+            <v-btn icon large color="success" @click="updateQuestion(question, true)">
+              <v-icon>mdi-check</v-icon>
+            </v-btn>
+            <v-spacer></v-spacer>
+            <v-btn icon large color="error" @click="updateQuestion(question, false)">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-window-item>
+    </v-window>
+  </v-card>
 </template>
 
 <script>

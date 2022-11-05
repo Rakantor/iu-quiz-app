@@ -13,6 +13,9 @@ export default {
   },
   created () {
     this.courseID = this.$route.params.course
+    if (!this.$store.state.user.games[this.courseID]) {
+      this.$store.commit('initCourse', this.courseID)
+    }
   }
 }
 </script>

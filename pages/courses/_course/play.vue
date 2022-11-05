@@ -1,8 +1,15 @@
 <template>
   <v-container v-if="selectedQuestion" fluid class="fill-height">
+    <GameResultDialog ref="resultDialog" :game="game" :course-id="courseID" />
     <v-row dense>
       <v-col cols="12">
         <p class="text-h6 text-center">{{ game.player1name }} vs. {{ game.player2name || '???' }}</p>
+      </v-col>
+      <v-col cols="12">
+        <v-icon
+          v-for="oneIndex, zeroIndex in game.questionIds.length" :key="zeroIndex"
+          :color="dotColor(zeroIndex)"
+        >mdi-circle</v-icon>
       </v-col>
       <v-col cols="12">
         <v-card class="d-flex align-center" height="250" :disabled="submittedAnswer === null" @click="nextQuestion">
@@ -36,10 +43,11 @@
 <script>
 import {
   collection, doc, getDocs, getDoc, addDoc, updateDoc,
-  query, where, orderBy, limit, arrayUnion, arrayRemove, writeBatch
+  writeBatch, query, where, orderBy, limit, arrayUnion, arrayRemove, increment
 } from 'firebase/firestore'
 import _sampleSize from 'lodash-es/sampleSize'
 import _shuffle from 'lodash-es/shuffle'
+import _isEmpty from 'lodash-es/isEmpty'
 import { ClosedEndedQuestionConverter, states } from '~/plugins/closed-ended-question'
 import { Game, GameConverter } from '~/plugins/game'
 
@@ -50,8 +58,7 @@ export default {
       courseID: undefined,
       game: null,
       questions: [],
-      selectedQuestions: [],
-      selectedQuestionID: -1,
+      selectedQuestion: null,
       submittedAnswer: null,
       timer: null,
       timePerRound: 20, // in seconds
@@ -63,8 +70,12 @@ export default {
     playerNumber () {
       return this.game.player1id === this.$auth.currentUser.uid ? 1 : 2
     },
-    selectedQuestion () {
-      return this.selectedQuestions[this.selectedQuestionID] || null
+    unansweredQuestions () {
+      if (!_isEmpty(this.game)) {
+        const questionsAnswered = this.game[`player${this.playerNumber}answers`].map(q => q.frage)
+        return this.game.questions.filter(q => !questionsAnswered.includes(q.id))
+      }
+      return []
     },
     answersShuffled () {
       // Ref: https://lodash.com/docs/#shuffle
@@ -89,6 +100,12 @@ export default {
         this.findGame()
       }
     })
+  },
+  beforeDestroy () {
+    // Automatically submit a wrong answer when the user leaves without answering the question
+    if (this.submittedAnswer === null) {
+      this.submitAnswer(-1)
+    }
   },
   methods: {
     getQuestions () {
@@ -117,9 +134,7 @@ export default {
         if (docSnap.exists()) {
           // Convert to Game object
           this.game = docSnap.data()
-
-          const questionsAnswered = this.game[`player${this.playerNumber}answers`].map(q => q.frage)
-          this.selectedQuestions = this.questions.filter(q => this.game.questions.includes(q.id) && !questionsAnswered.includes(q.id))
+          this.game.questions = this.questions.filter(q => this.game.questionIds.includes(q.id))
 
           // Start the game
           this.nextQuestion()
@@ -162,10 +177,10 @@ export default {
     },
     joinGame (game) {
       this.game = game
+      this.game.questions = this.questions.filter(q => game.questionIds.includes(q.id))
       this.game.player2id = this.$auth.currentUser.uid
       this.game.player2name = this.$store.state.user.displayName
       this.game.player2answers = []
-      this.selectedQuestions = this.questions.filter(q => game.questions.includes(q.id))
 
       // Get a new write batch
       const batch = writeBatch(this.$db)
@@ -192,13 +207,12 @@ export default {
       })
     },
     createGame () {
-      // Randomly pick 10 questions (or less) from the available questions
+      // Randomly pick 5 questions (or less) from the available questions
       // Ref: https://lodash.com/docs/#sampleSize
-      this.selectedQuestions = _sampleSize(this.questions, 10)
-
+      const rndQuestions = _sampleSize(this.questions, 5)
       const g = new Game(
         null,
-        this.selectedQuestions.map(q => q.id),
+        rndQuestions.map(q => q.id),
         Date.now() / 1000, // Current UNIX timestamp in seconds
         this.$auth.currentUser.uid,
         this.$store.state.user.displayName,
@@ -207,6 +221,7 @@ export default {
         '',
         []
       )
+      g.questions = rndQuestions
 
       // Add a new document with a generated id
       addDoc(collection(this.$db, `kurse/${this.courseID}/spiele`).withConverter(GameConverter), g)
@@ -231,15 +246,28 @@ export default {
       })
     },
     updateGame() {
-      const gameRef = doc(this.$db, `kurse/${this.courseID}/spiele/${this.game.id}`)
+      // Get a new write batch
+      const batch = writeBatch(this.$db)
 
-      // Atomically add a new answer to the "player[ID]answers" array field.
-      updateDoc(gameRef, {
-          [`spieler${this.playerNumber}antworten`]: arrayUnion({ frage: this.selectedQuestion.id, antwort: this.submittedAnswer })
-      }).then((empty) => {
-        // Query execution was successful. Nothing else to do here.
+      // Update the user's given answers for the current game
+      const gameRef = doc(this.$db, `kurse/${this.courseID}/spiele/${this.game.id}`)
+      batch.update(gameRef, {
+        [`spieler${this.playerNumber}antworten`]: arrayUnion({ frage: this.selectedQuestion.id, antwort: this.submittedAnswer })
+      })
+
+      // Increment the number of correct/incorrect answers given by the user by 1
+      const updateField = this.answerCorrect ? 'fragenRichtig' : 'fragenFalsch'
+      const userRef = doc(this.$db, `benutzer/${this.$auth.currentUser.uid}`)
+      batch.update(userRef, {
+          [`spiele.${this.courseID}.${updateField}`]: increment(1)
+      })
+
+      // Commit the batch
+      batch.commit().then((empty) => {
+        // Batch execution was successful
+        this.game[`player${this.playerNumber}answers`].push({ frage: this.selectedQuestion.id, antwort: this.submittedAnswer })
       }).catch((error) => {
-        // Failed to update the game; display error message
+        // Batch execution failed; display error message
         this.$toast({content: error, color: 'error'})
       })
     },
@@ -249,14 +277,15 @@ export default {
       this.updateGame()
     },
     nextQuestion () {
-      this.submittedAnswer = null
-      this.timeLeft = this.timePerRound * 1000 // convert sec to ms
-      const interval = 100 // in ms
-
-      if (++this.selectedQuestionID >= this.selectedQuestions.length) {
-        this.finishGame()
+      if (_isEmpty(this.unansweredQuestions)) {
+        this.finishRound()
         return
       }
+
+      this.submittedAnswer = null
+      this.selectedQuestion = this.unansweredQuestions[0]
+      this.timeLeft = this.timePerRound * 1000 // convert sec to ms
+      const interval = 100 // in ms
 
       // Hacky solution to disable v-progress-linear transition when resetting its value
       this.progressBarTransition = 'transition: none;'
@@ -274,18 +303,62 @@ export default {
         }
       }, interval)
     },
-    finishGame () {
-      this.$store.commit('removeGameInProgress', this.courseID)
+    finishRound () {
+      const gameComplete = this.game.player2answers.length === this.game.questionIds.length
+      if (gameComplete) this.completeGame()
 
+      this.$store.commit('removeGameInProgress', this.courseID)
       const ref = doc(this.$db, `benutzer/${this.$auth.currentUser.uid}`)
 
       updateDoc(ref, {
         spieleBegonnen: arrayRemove({ kurs: this.courseID, spiel: this.game.id })
       }).then((empty) => {
-        this.$router.push(`/courses/${this.courseID}`)
+        if (!gameComplete) this.$router.push(`/courses/${this.courseID}`)
       }).catch((error) => {
         this.$toast({content: error, color: 'error'})
       })
+    },
+    completeGame () {
+      const result = this.game.getResult()
+
+      // Figure out which player won and which player lost, or if the game was a tie
+      let updateFieldPl1 = ''
+      let updateFieldPl2 = ''
+      if (result.tie) {
+        updateFieldPl1 = updateFieldPl2 = 'unentschieden'
+      } else {
+        updateFieldPl1 = result.winner === 1 ? 'gewonnen' : 'verloren'
+        updateFieldPl2 = result.winner === 2 ? 'gewonnen' : 'verloren'
+      }
+
+      // Show the results dialog
+      this.$refs.resultDialog.show = true
+
+      // Get a new write batch
+      const batch = writeBatch(this.$db)
+
+      // Increment the number of games won/lost/tie of player1 by 1
+      const refPl1 = doc(this.$db, `benutzer/${this.game.player1id}`)
+      batch.update(refPl1, { [`spiele.${this.courseID}.${updateFieldPl1}`]: increment(1) })
+
+      // Increment the number of games won/lost/tie of player2 by 1
+      const refPl2 = doc(this.$db, `benutzer/${this.game.player2id}`)
+      batch.update(refPl2, { [`spiele.${this.courseID}.${updateFieldPl2}`]: increment(1) })
+
+      // Commit the batch
+      batch.commit().catch((error) => {
+        // Batch execution failed; display error message
+        this.$toast({ content: error, color: 'error' })
+      })
+    },
+    dotColor (index) {
+      if (!this.game || index + 1 > this.game[`player${this.playerNumber}answers`].length) return ''
+      else {
+        const questionId = this.game[`player${this.playerNumber}answers`][index].frage
+        const answer = this.game[`player${this.playerNumber}answers`][index].antwort
+        const correct = answer === this.game.questions.find(q => q.id === questionId).correctAnswer
+        return correct ? 'success' : 'error'
+      }
     }
   }
 }

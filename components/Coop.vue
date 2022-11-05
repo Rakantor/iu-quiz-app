@@ -1,22 +1,10 @@
 <template>
-  <v-container fluid>
-    <v-subheader class="text-h5 text--primary">Offene Fragen</v-subheader>
+  <v-card>
+    <v-card-title>Community Fragen</v-card-title>
+    <OpenEndedQuestionsList :questions="questions" />
     <v-divider></v-divider>
-    <v-expansion-panels focusable class="my-3">
-      <v-expansion-panel
-        v-for="(item, i) in questions"
-        :key="i"
-      >
-        <v-expansion-panel-header>
-          {{ item.question }}
-        </v-expansion-panel-header>
-        <v-expansion-panel-content class="text-pre-wrap">
-          <div class="text-pre-wrap">{{ item.solution }}</div>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-    </v-expansion-panels>
     <AddOpenEndedQuestion />
-  </v-container>
+  </v-card>
 </template>
 
 <script>

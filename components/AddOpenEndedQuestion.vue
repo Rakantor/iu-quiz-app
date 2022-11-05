@@ -2,43 +2,52 @@
   <v-card>
     <ValidationObserver ref="observer" v-slot="{ invalid }">
       <form @submit.prevent="submit">
-        <v-card-title>Offene Frage einreichen</v-card-title>
-        <v-card-text>
-          <v-row>
-            <v-col cols="12">
-              <ValidationProvider v-slot="{ errors }" name="Frage/Aufgabenstellung" rules="required|min:20">
-                <v-textarea
-                  v-model="question"
-                  required
-                  auto-grow
-                  filled
-                  counter
-                  label="Frage/Aufgabenstellung"
-                  :error-messages="errors"
-                ></v-textarea>
-              </ValidationProvider>
-            </v-col>
-            <v-col cols="12">
-              <ValidationProvider v-slot="{ errors }" name="Musterlösung" rules="required|min:50">
-                <v-textarea
-                  v-model="solution"
-                  required
-                  auto-grow
-                  filled
-                  counter
-                  label="Musterlösung"
-                  :error-messages="errors"
-                ></v-textarea>
-              </ValidationProvider>
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn v-if="$config.NODE_ENV !== 'production'" depressed color="warning" @click="addQuestionsForTesting">+10 Fragen</v-btn>
-          <v-spacer />
-          <v-btn text color="primary" @click="clear">Reset</v-btn>
-          <v-btn type="submit" depressed color="primary" :loading="loading" :disabled="invalid">Einreichen</v-btn>
-        </v-card-actions>
+        <v-card-title style="cursor: pointer;" @click="showBody = !showBody">
+          <span class="flex-grow-1 flex-shrink-0 text-subtitle-1 font-weight-medium">Eigene Frage einreichen</span>
+          <v-btn icon @click.stop="showBody = !showBody">
+            <v-icon>{{ showBody ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-expand-transition>
+          <div v-show="showBody">
+            <v-card-text>
+              <v-row>
+                <v-col cols="12">
+                  <ValidationProvider v-slot="{ errors }" name="Frage/Aufgabenstellung" rules="required|min:20">
+                    <v-textarea
+                      v-model="question"
+                      required
+                      auto-grow
+                      filled
+                      counter
+                      label="Frage/Aufgabenstellung"
+                      :error-messages="errors"
+                    ></v-textarea>
+                  </ValidationProvider>
+                </v-col>
+                <v-col cols="12">
+                  <ValidationProvider v-slot="{ errors }" name="Musterlösung" rules="required|min:50">
+                    <v-textarea
+                      v-model="solution"
+                      required
+                      auto-grow
+                      filled
+                      counter
+                      label="Musterlösung"
+                      :error-messages="errors"
+                    ></v-textarea>
+                  </ValidationProvider>
+                </v-col>
+              </v-row>
+            </v-card-text>
+            <v-card-actions>
+              <v-btn v-if="$config.NODE_ENV !== 'production'" depressed color="warning" @click="addQuestionsForTesting">+10 Fragen</v-btn>
+              <v-spacer />
+              <v-btn text color="primary" @click="clear">Reset</v-btn>
+              <v-btn type="submit" depressed color="primary" :loading="loading" :disabled="invalid">Einreichen</v-btn>
+            </v-card-actions>
+          </div>
+        </v-expand-transition>
       </form>
     </ValidationObserver>
   </v-card>
@@ -70,6 +79,7 @@ export default {
   },
   data () {
     return {
+      showBody: false,
       loading: false,
       question: '',
       solution: ''
