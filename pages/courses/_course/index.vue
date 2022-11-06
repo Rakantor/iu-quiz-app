@@ -1,5 +1,10 @@
 <template>
   <v-container fluid>
+    <v-row v-if="$store.getters.isAdmin">
+      <v-col cols="12">
+        <RemoveCourse :course-id="courseID" />
+      </v-col>
+    </v-row>
     <v-row>
       <v-col cols="12" sm="6">
         <v-card height="100%" class="d-flex align-center pa-2">

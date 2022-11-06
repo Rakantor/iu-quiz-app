@@ -83,7 +83,6 @@ export default {
       return new Date(str).toLocaleString('de-DE')
     },
     changeProfilePic () {
-      // TODO
       this.$toast({ content: 'Diese Funktion ist in der Demo-Version nicht verfügbar.', color: 'info', timeout: 3000 })
     },
     save () {

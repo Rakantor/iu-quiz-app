@@ -48,7 +48,8 @@ export const mutations = {
     state.user.courses.splice(index, 1)
   },
   setCourse (state, { courseID, courseData }) {
-    this._vm.$set(state.courses, courseID, courseData)
+    if (courseData) this._vm.$set(state.courses, courseID, courseData)
+    else this._vm.$delete(state.courses, courseID)
   },
   setSelectedCourse (state, courseID) {
     state.selectedCourse = courseID
