@@ -25,6 +25,12 @@
         </v-list-item-icon>
         <v-list-item-title>Dashboard</v-list-item-title>
       </v-list-item>
+      <v-list-item link :to="{ name: 'forum' }">
+        <v-list-item-icon>
+          <v-icon>mdi-account-group</v-icon>
+        </v-list-item-icon>
+        <v-list-item-title>Community</v-list-item-title>
+      </v-list-item>
       <v-list-item link :to="{ name: 'help' }">
         <v-list-item-icon>
           <v-icon>mdi-frequently-asked-questions</v-icon>
