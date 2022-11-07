@@ -181,6 +181,7 @@ export default {
       this.game.player2id = this.$auth.currentUser.uid
       this.game.player2name = this.$store.state.user.displayName
       this.game.player2answers = []
+      this.game.playerIds.push(this.game.player2id)
 
       // Get a new write batch
       const batch = writeBatch(this.$db)
@@ -214,6 +215,7 @@ export default {
         null,
         rndQuestions.map(q => q.id),
         Date.now() / 1000, // Current UNIX timestamp in seconds
+        false,
         this.$auth.currentUser.uid,
         this.$store.state.user.displayName,
         [],
@@ -252,7 +254,11 @@ export default {
       // Update the user's given answers for the current game
       const gameRef = doc(this.$db, `kurse/${this.courseID}/spiele/${this.game.id}`)
       batch.update(gameRef, {
-        [`spieler${this.playerNumber}antworten`]: arrayUnion({ frage: this.selectedQuestion.id, antwort: this.submittedAnswer })
+        [`spieler${this.playerNumber}antworten`]: arrayUnion({
+          frage: this.selectedQuestion.id,
+          antwort: this.submittedAnswer,
+          richtig: this.answerCorrect
+        })
       })
 
       // Increment the number of correct/incorrect answers given by the user by 1
@@ -265,7 +271,11 @@ export default {
       // Commit the batch
       batch.commit().then((empty) => {
         // Batch execution was successful
-        this.game[`player${this.playerNumber}answers`].push({ frage: this.selectedQuestion.id, antwort: this.submittedAnswer })
+        this.game[`player${this.playerNumber}answers`].push({
+          frage: this.selectedQuestion.id,
+          antwort: this.submittedAnswer,
+          richtig: this.answerCorrect
+        })
       }).catch((error) => {
         // Batch execution failed; display error message
         this.$toast({content: error, color: 'error'})
@@ -319,6 +329,7 @@ export default {
       })
     },
     completeGame () {
+      this.game.completed = true
       const result = this.game.getResult()
 
       // Figure out which player won and which player lost, or if the game was a tie
@@ -344,6 +355,10 @@ export default {
       // Increment the number of games won/lost/tie of player2 by 1
       const refPl2 = doc(this.$db, `benutzer/${this.game.player2id}`)
       batch.update(refPl2, { [`spiele.${this.courseID}.${updateFieldPl2}`]: increment(1) })
+
+      // Set the game's "completed" field to true
+      const refGame = doc(this.$db, `kurse/${this.courseID}/spiele/${this.game.id}`)
+      batch.update(refGame, { abgeschlossen: true })
 
       // Commit the batch
       batch.commit().catch((error) => {

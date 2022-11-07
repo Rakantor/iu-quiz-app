@@ -2,54 +2,44 @@
   <v-card>
     <ValidationObserver ref="observer" v-slot="{ invalid }">
       <form @submit.prevent="submit">
-        <v-card-title style="cursor: pointer;" @click="showBody = !showBody">
-          <span class="flex-grow-1 flex-shrink-0 text-subtitle-1 font-weight-medium">Eigene Quizfrage einreichen</span>
-          <v-btn icon @click.stop="showBody = !showBody">
-            <v-icon>{{ showBody ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-          </v-btn>
-        </v-card-title>
-        <v-expand-transition>
-          <div v-show="showBody">
-            <v-card-text>
-              <v-row>
-                <v-col cols="12">
-                  <ValidationProvider v-slot="{ errors }" name="frage" rules="required">
-                    <v-text-field v-model="question" required label="Frage" :error-messages="errors"></v-text-field>
-                  </ValidationProvider>
-                </v-col>
-                <v-col v-for="(n, index) in 4" :key="index" cols="6">
-                  <ValidationProvider v-slot="{ errors }" :name="`antwort${n}`" rules="required">
-                    <v-text-field v-model="answers[index]" required :label="`Antwort #${n}`" :error-messages="errors"></v-text-field>
-                  </ValidationProvider>
-                </v-col>
-                <v-col cols="12">
-                  <ValidationProvider v-slot="{ errors }" name="richtig" rules="required">
-                    <v-select v-model="correctAnswer" required :items="answers" label="Richtige Antwort" :error-messages="errors"></v-select>
-                  </ValidationProvider>
-                </v-col>
-                <v-col cols="12">
-                  <v-text-field
-                    v-model="comment"
-                    label="(Optional) Anmerkung"
-                    persistent-hint
-                    hint="Nur der Tutor kann deine Anmerkung sehen."
-                  >
-                    <template #message="{ message }">
-                      <v-icon small>mdi-information</v-icon>
-                      <span>{{ message }}</span>
-                    </template>
-                  </v-text-field>
-                </v-col>
-              </v-row>
-            </v-card-text>
-            <v-card-actions>
-              <v-btn v-if="$config.NODE_ENV !== 'production'" depressed color="warning" @click="addQuestionsForTesting">+10 Fragen</v-btn>
-              <v-spacer />
-              <v-btn text color="primary" @click="clear">Reset</v-btn>
-              <v-btn type="submit" depressed color="primary" :loading="loading" :disabled="invalid">Einreichen</v-btn>
-            </v-card-actions>
-          </div>
-        </v-expand-transition>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12">
+              <ValidationProvider v-slot="{ errors }" name="frage" rules="required">
+                <v-text-field v-model="question" required label="Frage" :error-messages="errors"></v-text-field>
+              </ValidationProvider>
+            </v-col>
+            <v-col v-for="(n, index) in 4" :key="index" cols="6">
+              <ValidationProvider v-slot="{ errors }" :name="`antwort${n}`" rules="required">
+                <v-text-field v-model="answers[index]" required :label="`Antwort #${n}`" :error-messages="errors"></v-text-field>
+              </ValidationProvider>
+            </v-col>
+            <v-col cols="12">
+              <ValidationProvider v-slot="{ errors }" name="richtig" rules="required">
+                <v-select v-model="correctAnswer" required :items="answers" label="Richtige Antwort" :error-messages="errors"></v-select>
+              </ValidationProvider>
+            </v-col>
+            <v-col cols="12">
+              <v-text-field
+                v-model="comment"
+                label="(Optional) Anmerkung"
+                persistent-hint
+                hint="Nur der Tutor kann deine Anmerkung sehen."
+              >
+                <template #message="{ message }">
+                  <v-icon small>mdi-information</v-icon>
+                  <span>{{ message }}</span>
+                </template>
+              </v-text-field>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn v-if="$config.NODE_ENV !== 'production'" depressed color="warning" @click="addQuestionsForTesting">+10 Fragen</v-btn>
+          <v-spacer />
+          <v-btn text color="primary" @click="clear">Reset</v-btn>
+          <v-btn type="submit" depressed color="primary" :loading="loading" :disabled="invalid">Einreichen</v-btn>
+        </v-card-actions>
       </form>
     </ValidationObserver>
   </v-card>
@@ -76,7 +66,6 @@ export default {
   },
   data () {
     return {
-      showBody: false,
       loading: false,
       question: '',
       answers: [],
