@@ -1,12 +1,14 @@
 <template>
   <v-card>
     <v-card-title>Challenge</v-card-title>
+    <v-card-subtitle>Teste dein Wissen, indem du in Quizduellen gegen deine Kommilitonen antrittst!</v-card-subtitle>
     <v-card-text>
-      <v-btn depressed color="success" class="my-3" @click="playVersus">
+      <v-btn large depressed color="success" class="my-3" @click="playVersus">
         <v-icon left>mdi-play</v-icon>
         Spielen
       </v-btn>
     </v-card-text>
+    <v-divider></v-divider>
     <v-expansion-panels v-model="expPanel" accordion class="text-subtitle-1 font-weight-medium">
       <v-expansion-panel>
         <v-expansion-panel-header>
@@ -37,19 +39,31 @@
           Persönliche Statistik
         </v-expansion-panel-header>
         <v-expansion-panel-content>
-          <v-card-title>
-            Spiele {{ games.won + games.lost + games.tie }}
-          </v-card-title>
-          <v-card-subtitle>
-            <div>Siege: {{ games.won }}</div>
-            <div>Unentschieden: {{ games.lost }}</div>
-            <div>Niederlagen: {{ games.tie }}</div>
-            <div>Fragen: {{ games.questionsCorrect + games.questionsIncorrect }}</div>
-            <div>Richtig: {{ questionsCorrectPercent }}%</div>
-          </v-card-subtitle>
-          <v-card-text>
-            {{ text }}
-          </v-card-text>
+            <v-row>
+              <v-col cols="auto">
+                <div class="text-subtitle-1">Spiele:</div>
+                <div class="text-body-2">Siege:</div>
+                <div class="text-body-2">Unentschieden:</div>
+                <div class="text-body-2">Niederlagen:</div>
+              </v-col>
+              <v-col cols="auto">
+                <div class="text-subtitle-1">{{ games.won + games.lost + games.tie }}</div>
+                <div class="text-body-2">{{ games.won }}</div>
+                <div class="text-body-2">{{ games.tie }}</div>
+                <div class="text-body-2">{{ games.lost }}</div>
+              </v-col>
+              <v-col cols="auto">
+                <div class="text-subtitle-1">Fragen:</div>
+                <div class="text-body-2">Richtig:</div>
+              </v-col>
+              <v-col cols="auto">
+                <div class="text-subtitle-1">{{ games.questionsCorrect + games.questionsIncorrect }}</div>
+                <div class="text-body-2">{{ questionsCorrectPercent }}%</div>
+              </v-col>
+              <v-col cols="12" class="text-body-2">
+                {{ text }}
+              </v-col>
+            </v-row>
         </v-expansion-panel-content>
       </v-expansion-panel>
       <v-expansion-panel>
@@ -93,7 +107,7 @@ export default {
       return percent ? Math.round(parseFloat(percent)) : 100 // Convert to float, then round to closest int
     },
     text () {
-      if (this.questionsAnswered >= 20 && this.questionsCorrectPercent >= 90) {
+      if (this.questionsAnswered >= 20 && this.questionsCorrectPercent >= 85) {
         return 'Du scheinst gut auf die Klausur vorbereitet zu sein. Viel Glück!'
       } else {
         return 'Wir empfehlen Dir noch ein wenig zu üben, bevor du zur Klausur antrittst.'
