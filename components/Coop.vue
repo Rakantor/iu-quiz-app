@@ -3,7 +3,7 @@
     <v-card-title>Community Fragen</v-card-title>
     <OpenEndedQuestionsList :questions="questions" />
     <v-divider></v-divider>
-    <AddOpenEndedQuestion />
+    <AddOpenEndedQuestion @added="addQuestionToList" />
   </v-card>
 </template>
 
@@ -43,6 +43,9 @@ export default {
         // Failed to fetch questions from the database; display error message
         this.$toast({ content: error, color: 'error' })
       })
+    },
+    addQuestionToList (q) {
+      this.questions.push(q)
     }
   }
 }

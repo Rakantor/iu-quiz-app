@@ -96,14 +96,16 @@ export default {
         this.$auth.currentUser.uid, // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.User
         Date.now() / 1000, // Current UNIX timestamp in seconds
         [],
-        []
+        {}
       )
 
       // Add a new document with a generated id.
       addDoc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenOffen`).withConverter(OpenEndedQuestionConverter), q)
       .then((docRef) => {
         // Successfully added new question to database
-        this.$toast({ content: 'Deine Frage wurde eingereicht!', color: 'success' })
+        q.id = docRef.id
+        this.$emit('added', q)
+        this.$toast({ content: 'Deine Frage wurde hinzugefügt!', color: 'success' })
       })
       .catch((error) => {
         // Failed to add question to database; display error message
@@ -153,7 +155,7 @@ export default {
           this.$auth.currentUser.uid, // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.User
           Date.now() / 1000, // Current UNIX timestamp in seconds
           [],
-          []
+          {}
         )
 
         const questionRef = doc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenOffen`).withConverter(OpenEndedQuestionConverter))
