@@ -1,6 +1,7 @@
 export class OpenEndedQuestion {
-  constructor (id, question, solution, creator, created, helpful, difficulty) {
+  constructor (id, chapter, question, solution, creator, created, helpful, difficulty) {
     this.id = id
+    this.chapter = chapter
     this.question = question
     this.solution = solution
     this.creator = creator
@@ -40,6 +41,7 @@ export const OpenEndedQuestionConverter = {
   toFirestore: (openEndedQuestion) => {
     return {
       frage: openEndedQuestion.question,
+      kapitel: openEndedQuestion.chapter,
       musterloesung: openEndedQuestion.solution,
       ersteller: openEndedQuestion.creator,
       erstellt: openEndedQuestion.created,
@@ -53,6 +55,8 @@ export const OpenEndedQuestionConverter = {
   },
   fromFirestore: (snapshot, options) => {
     const data = snapshot.data(options)
-    return new OpenEndedQuestion(snapshot.id, data.frage, data.musterloesung, data.ersteller, data.erstellt, data.hilfreich, data.schwierigkeit)
+    return new OpenEndedQuestion(snapshot.id,
+      data.kapitel, data.frage, data.musterloesung, data.ersteller, data.erstellt, data.hilfreich, data.schwierigkeit
+    )
   }
 }

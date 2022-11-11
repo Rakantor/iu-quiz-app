@@ -1,21 +1,18 @@
 <template>
   <v-data-iterator
-    :items="questions"
+    :items="items"
     :items-per-page.sync="itemsPerPage"
     :page.sync="page"
     :search="search"
-    :sort-by="sortBy"
-    :sort-desc="sortDesc"
+    disable-sort
     no-data-text="Keine Daten vorhanden"
     no-results-text="Keine passenden Ergebnisse gefunden"
     locale="de-DE"
     class="text-center"
+    :footer-props="{ itemsPerPageOptions: itemsPerPageArray, itemsPerPageText: 'Fragen pro Seite'}"
   >
     <template #header>
-      <v-toolbar
-        flat
-        class="mb-1"
-      >
+      <v-toolbar flat class="mb-1">
         <v-text-field
           v-model="search"
           clearable
@@ -43,19 +40,11 @@
             v-model="sortDesc"
             mandatory
           >
-            <v-btn
-              large
-              depressed
-              :value="false"
-            >
-              <v-icon>mdi-arrow-up</v-icon>
+            <v-btn large depressed :value="false">
+              <v-icon>mdi-sort-ascending</v-icon>
             </v-btn>
-            <v-btn
-              large
-              depressed
-              :value="true"
-            >
-              <v-icon>mdi-arrow-down</v-icon>
+            <v-btn large depressed :value="true">
+              <v-icon>mdi-sort-descending</v-icon>
             </v-btn>
           </v-btn-toggle>
         </template>
@@ -73,6 +62,9 @@
             >
               <v-expansion-panel-header v-slot="{ open }">
                 <v-row dense>
+                  <v-col cols="12" class="text-overline text--secondary">
+                    <strong>Kapitel {{ item.chapter || '-' }}</strong>
+                  </v-col>
                   <v-col cols="12" class="text-pre-wrap">
                     <strong>{{ item.question }}</strong>
                   </v-col>
@@ -95,29 +87,16 @@
                   <v-col cols="12" class="mb-4">
                     <div class="text-left text-pre-wrap">{{ item.solution }}</div>
                   </v-col>
-                  <v-col cols="auto" class="mr-4">
-                    <v-btn icon :color="helpful ? 'primary' : ''" @click="toggleHelpful">
-                      <v-icon>{{ helpful ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}</v-icon>
-                    </v-btn>
-                    <div class="text-caption text--secondary">{{ item.helpful.length }}</div>
-                  </v-col>
-                  <v-col cols="auto">
-                    <v-btn icon :color="difficulty === 'easy' ? 'amber' : ''" @click="toggleDifficulty('easy')">
-                      <v-icon>{{ difficulty === 'easy' ? 'mdi-emoticon' : 'mdi-emoticon-outline' }}</v-icon>
-                    </v-btn>
-                    <div class="text-caption text--secondary">{{ item.difficulty.easy.length }}</div>
-                  </v-col>
-                  <v-col cols="auto">
-                    <v-btn icon :color="difficulty === 'medium' ? 'amber' : ''" @click="toggleDifficulty('medium')">
-                      <v-icon>{{ difficulty === 'medium' ? 'mdi-emoticon-happy' : 'mdi-emoticon-happy-outline' }}</v-icon>
-                    </v-btn>
-                    <div class="text-caption text--secondary">{{ item.difficulty.medium.length }}</div>
-                  </v-col>
-                  <v-col cols="auto">
-                    <v-btn icon :color="difficulty === 'hard' ? 'amber' : ''" @click="toggleDifficulty('hard')">
-                      <v-icon>{{ difficulty === 'hard' ? 'mdi-emoticon-confused' : 'mdi-emoticon-confused-outline' }}</v-icon>
-                    </v-btn>
-                    <div class="text-caption text--secondary">{{ item.difficulty.hard.length }}</div>
+                  <v-col v-for="(btn, btni) in actionButtons" :key="btni" cols="auto" :class="btn.class">
+                    <v-tooltip bottom>
+                      <template #activator="{ on, attrs }">
+                        <v-btn icon :color="btn.active ? btn.iconColor : ''" v-bind="attrs" v-on="on" @click="btn.onClick">
+                          <v-icon>{{ btn.active ? btn.iconActive : btn.iconInactive }}</v-icon>
+                        </v-btn>
+                      </template>
+                      <span>{{ btn.tooltip }}</span>
+                    </v-tooltip>
+                    <div class="text-caption text--secondary">{{ btn.caption }}</div>
                   </v-col>
                 </v-row>
               </v-expansion-panel-content>
@@ -125,6 +104,11 @@
           </v-expansion-panels>
         </v-card>
       </v-container>
+    </template>
+
+    <!-- eslint-disable-next-line -->
+    <template #footer.page-text="{ pageStart, pageStop, itemsLength }">
+      <span>{{ pageStart }} - {{ pageStop }} von {{ itemsLength }}</span>
     </template>
   </v-data-iterator>
 </template>
@@ -142,15 +126,16 @@ export default {
   },
   data () {
     return {
-      itemsPerPageArray: [10, 20, 30],
+      items: [],
+      itemsPerPageArray: [10, 25, 50],
       search: '',
-      filter: {},
       sortDesc: true,
       page: 1,
       itemsPerPage: 10,
       sortBy: 'created',
       keys: [
         { key: 'Neueste', value: 'created' },
+        { key: 'Kapitel', value: 'chapter' },
         { key: 'Hilfreich', value: 'helpful' },
         { key: 'Schwierigkeit', value: 'difficultyLevel' }
       ],
@@ -165,8 +150,51 @@ export default {
     numberOfPages () {
       return Math.ceil(this.questions.length / this.itemsPerPage)
     },
-    filteredKeys () {
-      return this.keys.filter(key => key !== 'Name')
+    actionButtons () {
+      const self = this
+      return [
+        // Button "Helpful"
+        {
+          active: this.helpful,
+          iconActive: 'mdi-thumb-up',
+          iconInactive: 'mdi-thumb-up-outline',
+          iconColor: 'primary',
+          caption: this.selectedQuestion && this.selectedQuestion.helpful.length,
+          tooltip: 'Hilfreich',
+          class: 'mr-4',
+          onClick() { self.toggleHelpful() }
+        },
+        // Button "Easy Question"
+        {
+          active: this.difficulty === 'easy',
+          iconActive: 'mdi-emoticon',
+          iconInactive: 'mdi-emoticon-outline',
+          iconColor: 'amber',
+          caption: this.selectedQuestion && this.selectedQuestion.difficulty.easy.length,
+          tooltip: 'Leichte Frage',
+          onClick() { self.toggleDifficulty('easy') }
+        },
+        // Button "Moderate Question"
+        {
+          active: this.difficulty === 'medium',
+          iconActive: 'mdi-emoticon-happy',
+          iconInactive: 'mdi-emoticon-happy-outline',
+          iconColor: 'amber',
+          caption: this.selectedQuestion && this.selectedQuestion.difficulty.medium.length,
+          tooltip: 'Mittelschwere Frage',
+          onClick() { self.toggleDifficulty('medium') }
+        },
+        // Button "Hard Question"
+        {
+          active: this.difficulty === 'hard',
+          iconActive: 'mdi-emoticon-confused',
+          iconInactive: 'mdi-emoticon-confused-outline',
+          iconColor: 'amber',
+          caption: this.selectedQuestion && this.selectedQuestion.difficulty.hard.length,
+          tooltip: 'Schwere Frage',
+          onClick() { self.toggleDifficulty('hard') }
+        }
+      ]
     },
     helpful () {
       return this.selectedQuestion && this.selectedQuestion.helpful.includes(this.$auth.currentUser.uid)
@@ -178,15 +206,33 @@ export default {
       else return null
     }
   },
+  watch: {
+    questions () {
+      this.items = [...this.questions]
+      this.sort()
+    },
+    sortBy () {
+      this.sort()
+    },
+    sortDesc () {
+      this.sort()
+    }
+  },
   methods: {
-    nextPage () {
-      if (this.page + 1 <= this.numberOfPages) this.page += 1
-    },
-    formerPage () {
-      if (this.page - 1 >= 1) this.page -= 1
-    },
-    updateItemsPerPage (number) {
-      this.itemsPerPage = number
+    sort () {
+      if (this.items && this.items.length > 0) {
+        this.items.sort((a, b) => {
+          if (this.sortBy === 'helpful') {
+            return this.sortDesc
+              ? b[this.sortBy].length - a[this.sortBy].length
+              : a[this.sortBy].length - b[this.sortBy].length
+          } else {
+            return this.sortDesc
+              ? b[this.sortBy] - a[this.sortBy]
+              : a[this.sortBy] - b[this.sortBy]
+          }
+        })
+      }
     },
     setSelectedQuestion(q) {
       this.selectedQuestion = q
@@ -238,6 +284,7 @@ export default {
           if (indexHard !== -1) this.selectedQuestion.difficulty.hard.splice(indexHard, 1)
           this.selectedQuestion.difficulty[type].push(this.$auth.currentUser.uid)
         }
+        this.selectedQuestion.updateDifficultyLevel()
       }).catch((error) => {
         // Failed to update the question; display error message
         this.$toast({ content: error, color: 'error' })

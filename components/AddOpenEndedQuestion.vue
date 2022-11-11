@@ -3,7 +3,7 @@
     <ValidationObserver ref="observer" v-slot="{ invalid }">
       <form @submit.prevent="submit">
         <v-card-title style="cursor: pointer;" @click="showBody = !showBody">
-          <span class="flex-grow-1 flex-shrink-0 text-subtitle-1 font-weight-medium">Eigene Frage einreichen</span>
+          <span class="flex-grow-1 flex-shrink-0 text-subtitle-1 font-weight-medium">Eigene Frage einsenden</span>
           <v-btn icon @click.stop="showBody = !showBody">
             <v-icon>{{ showBody ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
           </v-btn>
@@ -13,26 +13,41 @@
             <v-card-text>
               <v-row>
                 <v-col cols="12">
-                  <ValidationProvider v-slot="{ errors }" name="Frage/Aufgabenstellung" rules="required|min:20">
+                  <ValidationProvider v-slot="{ errors }" name="Kapitelnummer" :rules="{ regex: /^[1-9]+$/ }">
+                    <v-text-field
+                      v-model="chapter"
+                      filled
+                      hint="Freilassen, wenn deine Frage das Wissen aus mehreren Kapiteln vereint."
+                      persistent-hint
+                      maxlength="1"
+                      label="Kapitelnummer"
+                      :error-messages="errors"
+                    ></v-text-field>
+                  </ValidationProvider>
+                </v-col>
+                <v-col cols="12">
+                  <ValidationProvider v-slot="{ errors }" name="Frage/Aufgabenstellung" :rules="{ required: true, min: 20, max: questionMaxLength }">
                     <v-textarea
                       v-model="question"
                       required
                       auto-grow
                       filled
                       counter
+                      :maxlength="questionMaxLength"
                       label="Frage/Aufgabenstellung"
                       :error-messages="errors"
                     ></v-textarea>
                   </ValidationProvider>
                 </v-col>
                 <v-col cols="12">
-                  <ValidationProvider v-slot="{ errors }" name="Musterlösung" rules="required|min:50">
+                  <ValidationProvider v-slot="{ errors }" name="Musterlösung" :rules="{ required: true, min: 50, max: solutionMaxLength }">
                     <v-textarea
                       v-model="solution"
                       required
                       auto-grow
                       filled
                       counter
+                      :maxlength="solutionMaxLength"
                       label="Musterlösung"
                       :error-messages="errors"
                     ></v-textarea>
@@ -58,7 +73,7 @@ import { collection, doc, addDoc, writeBatch } from 'firebase/firestore'
 // We use vee-validate@3 for form validation.
 // https://vee-validate.logaretm.com/v3/guide/basics.html
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
-import { required, min } from 'vee-validate/dist/rules'
+import { required, min, max, regex } from 'vee-validate/dist/rules'
 import dedent from 'dedent'
 import { OpenEndedQuestion, OpenEndedQuestionConverter } from '~/plugins/open-ended-question'
 
@@ -72,6 +87,16 @@ extend('min', {
   message: '{_field_} muss mindestens {length} Zeichen lang sein.'
 })
 
+extend('max', {
+  ...max,
+  message: '{_field_} darf maximal {length} Zeichen lang sein.'
+})
+
+extend('regex', {
+  ...regex,
+  message: '{_field_} muss eine Zahl von 1-9 sein.'
+})
+
 export default {
   components: {
     ValidationProvider,
@@ -79,43 +104,60 @@ export default {
   },
   data () {
     return {
-      showBody: false,
-      loading: false,
+      questionMaxLength: 250,
+      solutionMaxLength: 1000,
+      chapter: null,
       question: '',
-      solution: ''
+      solution: '',
+      showBody: false,
+      loading: false
     }
   },
   methods: {
     submit () {
-      this.loading = true
+      // Remove extra spaces at the start and end of the string (trim),
+      // then remove extra spaces between words (1st replace),
+      // then remove extra line breaks so that there's max 1 empty line between paragraphs (2nd replace).
+      this.question = this.question.trim().replace(/ +/g, ' ').replace(/[\r\n]{3,}/g, '\n\n')
+      this.solution = this.solution.trim().replace(/ +/g, ' ').replace(/[\r\n]{3,}/g, '\n\n')
 
-      const q = new OpenEndedQuestion(
-        null,
-        this.question,
-        this.solution,
-        this.$auth.currentUser.uid, // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.User
-        Date.now() / 1000, // Current UNIX timestamp in seconds
-        [],
-        {}
-      )
+      // Wait until the models are updated in the UI
+      this.$nextTick(() => {
+        this.$refs.observer.validate().then((success) => {
+          if (!success) return
 
-      // Add a new document with a generated id.
-      addDoc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenOffen`).withConverter(OpenEndedQuestionConverter), q)
-      .then((docRef) => {
-        // Successfully added new question to database
-        q.id = docRef.id
-        this.$emit('added', q)
-        this.$toast({ content: 'Deine Frage wurde hinzugefügt!', color: 'success' })
-      })
-      .catch((error) => {
-        // Failed to add question to database; display error message
-        this.$toast({content: error, color: 'error'})
-      })
-      .then(() => {
-        this.loading = false
+          this.loading = true
+          const q = new OpenEndedQuestion(
+            null,
+            this.chapter,
+            this.question,
+            this.solution,
+            this.$auth.currentUser.uid, // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.User
+            Date.now() / 1000, // Current UNIX timestamp in seconds
+            [],
+            {}
+          )
+
+          // Add a new document with a generated id.
+          addDoc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenOffen`).withConverter(OpenEndedQuestionConverter), q)
+          .then((docRef) => {
+            // Successfully added new question to database
+            q.id = docRef.id
+            this.$emit('added', q)
+            this.$toast({ content: 'Deine Frage wurde hinzugefügt!', color: 'success' })
+          })
+          .catch((error) => {
+            // Failed to add question to database; display error message
+            this.$toast({content: error, color: 'error'})
+          })
+          .then(() => {
+            this.loading = false
+          })
+        })
       })
     },
     clear () {
+      this.chapter = ''
       this.question = ''
       this.solution = ''
       this.$refs.observer.reset()
@@ -145,11 +187,14 @@ export default {
       const batch = writeBatch(this.$db)
 
       for (let i = 1; i <= 10; i++) {
-        // Generate random integer between 1 (inlcusive) and 1000 (inclusive)
+        // Generate random integer between 1 (inclusive) and 1000 (inclusive)
         const randomNumber = Math.floor(Math.random() * (1000 - 1 + 1) + 1)
+        // Generate random integer between 1 (inclusive) and 9 (inclusive)
+        const chapter = Math.floor(Math.random() * (9 - 1 + 1) + 1)
 
         const q = new OpenEndedQuestion(
           null,
+          chapter,
           `Frage ${randomNumber}: Erläutere den Sinn des Lebens.`,
           solution,
           this.$auth.currentUser.uid, // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.User
