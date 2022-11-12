@@ -71,7 +71,18 @@
           Neue Quizfrage einreichen
         </v-expansion-panel-header>
         <v-expansion-panel-content>
-          <AddClosedEndedQuestion />
+          <v-tabs v-model="tab" color="primary">
+            <v-tab>Neue Frage</v-tab>
+            <v-tab>Meine Fragen</v-tab>
+          </v-tabs>
+          <v-tabs-items v-model="tab" style="background-color: transparent !important;">
+            <v-tab-item>
+              <AddClosedEndedQuestion />
+            </v-tab-item>
+            <v-tab-item>
+              <ClosedEndedQuestionsList :questions="userQuestions" />
+            </v-tab-item>
+          </v-tabs-items>
         </v-expansion-panel-content>
       </v-expansion-panel>
     </v-expansion-panels>
@@ -81,23 +92,23 @@
 <script>
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore'
 import { GameConverter } from '~/plugins/game'
+import { ClosedEndedQuestionConverter } from '~/plugins/closed-ended-question'
 
 export default {
   name: 'QuizComponent',
-  props: {
-    courseId: {
-      type: String,
-      required: true
-    }
-  },
   data () {
     return {
       openGames: [],
       completedGames: [],
-      expPanel: 0
+      userQuestions: [],
+      expPanel: 0,
+      tab: 0
     }
   },
   computed: {
+    courseId () {
+      return this.$store.state.selectedCourse
+    },
     games () {
       return this.$store.state.user.games[this.courseId]
     },
@@ -111,6 +122,15 @@ export default {
         return 'Du scheinst gut auf die Klausur vorbereitet zu sein. Viel Glück!'
       } else {
         return 'Wir empfehlen Dir noch ein wenig zu üben, bevor du zur Klausur antrittst.'
+      }
+    }
+  },
+  watch: {
+    tab (val) {
+      // Get the user's own questions from the db the
+      // first time they switch to the "My Questions" tab.
+      if (val === 1/* && this.userQuestions.length === 0 */) {
+        this.getUserQuestions()
       }
     }
   },
@@ -158,8 +178,25 @@ export default {
         this.$toast({ content: error, color: 'error' })
       })
     },
+    getUserQuestions () {
+      const q = query(
+        collection(this.$db, `kurse/${this.courseId}/fragenGeschlossen`).withConverter(ClosedEndedQuestionConverter),
+        where('ersteller', '==', this.$auth.currentUser.uid)
+      )
+
+      getDocs(q).then((querySnapshot) => {
+        const questions = []
+        querySnapshot.forEach((doc) => {
+          // doc.data() is never undefined for query doc snapshots
+          questions.push(doc.data())
+        })
+        this.userQuestions = questions
+      }).catch((error) => {
+        // Query failed; display error message
+        this.$toast({ content: error, color: 'error' })
+      })
+    },
     playVersus () {
-      // TODO
       this.$router.push(`${this.$route.path}/play`)
     }
   }
