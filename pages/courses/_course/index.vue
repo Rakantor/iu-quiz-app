@@ -42,7 +42,7 @@
             <TutorPanel :course-id="courseID" />
           </v-col>
           <v-col cols="12">
-            <QuizComponent :course-id="courseID" />
+            <QuizComponent />
           </v-col>
           <v-col cols="12">
             <CommunityComponent />

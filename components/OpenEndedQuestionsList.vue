@@ -112,7 +112,7 @@
 
       <!-- eslint-disable-next-line -->
       <template #footer.page-text="{ pageStart, pageStop, itemsLength }">
-        <span>{{ pageStart }} - {{ pageStop }} von {{ itemsLength }}</span>
+        <span>{{ pageStart }}-{{ pageStop }} von {{ itemsLength }}</span>
       </template>
     </v-data-iterator>
   </v-container>
@@ -149,9 +149,6 @@ export default {
     },
     courseId () {
       return this.$store.state.selectedCourse
-    },
-    numberOfPages () {
-      return Math.ceil(this.questions.length / this.itemsPerPage)
     },
     actionButtons () {
       const self = this
