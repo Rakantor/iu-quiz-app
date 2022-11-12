@@ -2,79 +2,80 @@
   <v-card>
     <ValidationObserver ref="observer" v-slot="{ invalid }">
       <form @submit.prevent="submit">
-        <v-card-title style="cursor: pointer;" @click="showBody = !showBody">
-          <span class="flex-grow-1 flex-shrink-0 text-subtitle-1 font-weight-medium">Eigene Frage einsenden</span>
-          <v-btn icon @click.stop="showBody = !showBody">
-            <v-icon>{{ showBody ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12">
+              <ValidationProvider v-slot="{ errors }" name="Kapitelnummer" :rules="{ regex: /^[1-9]+$/ }">
+                <v-text-field
+                  v-model="chapter"
+                  filled
+                  hint="Freilassen, wenn deine Frage das Wissen aus mehreren Kapiteln vereint."
+                  persistent-hint
+                  maxlength="1"
+                  label="Kapitelnummer"
+                  :error-messages="errors"
+                ></v-text-field>
+              </ValidationProvider>
+            </v-col>
+            <v-col cols="12">
+              <ValidationProvider v-slot="{ errors }" name="Frage/Aufgabenstellung" :rules="{ required: true, min: 20, max: questionMaxLength }">
+                <v-textarea
+                  v-model="question"
+                  required
+                  auto-grow
+                  filled
+                  counter
+                  :maxlength="questionMaxLength"
+                  label="Frage/Aufgabenstellung"
+                  :error-messages="errors"
+                ></v-textarea>
+              </ValidationProvider>
+            </v-col>
+            <v-col cols="12">
+              <ValidationProvider v-slot="{ errors }" name="Musterlösung" :rules="{ required: true, min: 50, max: solutionMaxLength }">
+                <v-textarea
+                  v-model="solution"
+                  required
+                  auto-grow
+                  filled
+                  counter
+                  :maxlength="solutionMaxLength"
+                  label="Musterlösung"
+                  :error-messages="errors"
+                ></v-textarea>
+              </ValidationProvider>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn v-if="$config.NODE_ENV !== 'production'" depressed color="warning" @click="addQuestionsForTesting">+10 Fragen</v-btn>
+          <v-spacer />
+          <v-btn text color="primary" @click="reset">Reset</v-btn>
+          <v-btn v-if="editing" outlined color="primary" @click="$emit('close')">Abbrechen</v-btn>
+          <v-btn
+            type="submit"
+            depressed
+            color="primary"
+            :loading="loading"
+            :disabled="invalid"
+          >
+            {{ editing ? 'Absenden' : 'Einreichen' }}
           </v-btn>
-        </v-card-title>
-        <v-expand-transition>
-          <div v-show="showBody">
-            <v-card-text>
-              <v-row>
-                <v-col cols="12">
-                  <ValidationProvider v-slot="{ errors }" name="Kapitelnummer" :rules="{ regex: /^[1-9]+$/ }">
-                    <v-text-field
-                      v-model="chapter"
-                      filled
-                      hint="Freilassen, wenn deine Frage das Wissen aus mehreren Kapiteln vereint."
-                      persistent-hint
-                      maxlength="1"
-                      label="Kapitelnummer"
-                      :error-messages="errors"
-                    ></v-text-field>
-                  </ValidationProvider>
-                </v-col>
-                <v-col cols="12">
-                  <ValidationProvider v-slot="{ errors }" name="Frage/Aufgabenstellung" :rules="{ required: true, min: 20, max: questionMaxLength }">
-                    <v-textarea
-                      v-model="question"
-                      required
-                      auto-grow
-                      filled
-                      counter
-                      :maxlength="questionMaxLength"
-                      label="Frage/Aufgabenstellung"
-                      :error-messages="errors"
-                    ></v-textarea>
-                  </ValidationProvider>
-                </v-col>
-                <v-col cols="12">
-                  <ValidationProvider v-slot="{ errors }" name="Musterlösung" :rules="{ required: true, min: 50, max: solutionMaxLength }">
-                    <v-textarea
-                      v-model="solution"
-                      required
-                      auto-grow
-                      filled
-                      counter
-                      :maxlength="solutionMaxLength"
-                      label="Musterlösung"
-                      :error-messages="errors"
-                    ></v-textarea>
-                  </ValidationProvider>
-                </v-col>
-              </v-row>
-            </v-card-text>
-            <v-card-actions>
-              <v-btn v-if="$config.NODE_ENV !== 'production'" depressed color="warning" @click="addQuestionsForTesting">+10 Fragen</v-btn>
-              <v-spacer />
-              <v-btn text color="primary" @click="clear">Reset</v-btn>
-              <v-btn type="submit" depressed color="primary" :loading="loading" :disabled="invalid">Einreichen</v-btn>
-            </v-card-actions>
-          </div>
-        </v-expand-transition>
+        </v-card-actions>
       </form>
     </ValidationObserver>
   </v-card>
 </template>
 
 <script>
-import { collection, doc, addDoc, writeBatch } from 'firebase/firestore'
+import { collection, doc, addDoc, setDoc, writeBatch } from 'firebase/firestore'
 // We use vee-validate@3 for form validation.
 // https://vee-validate.logaretm.com/v3/guide/basics.html
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
 import { required, min, max, regex } from 'vee-validate/dist/rules'
 import dedent from 'dedent'
+import _isEmpty from 'lodash-es/isEmpty'
+import _isEqual from 'lodash-es/isEqual'
 import { OpenEndedQuestion, OpenEndedQuestionConverter } from '~/plugins/open-ended-question'
 
 extend('required', {
@@ -102,16 +103,31 @@ export default {
     ValidationProvider,
     ValidationObserver
   },
+  props: {
+    openEndedQuestion: OpenEndedQuestion
+  },
   data () {
     return {
       questionMaxLength: 250,
-      solutionMaxLength: 1000,
+      solutionMaxLength: 1500,
       chapter: null,
       question: '',
       solution: '',
-      showBody: false,
       loading: false
     }
+  },
+  computed: {
+    editing () {
+      return !_isEmpty(this.openEndedQuestion)
+    }
+  },
+  watch: {
+    openEndedQuestion () {
+      this.reset()
+    }
+  },
+  mounted () {
+    this.reset()
   },
   methods: {
     submit () {
@@ -125,41 +141,80 @@ export default {
       this.$nextTick(() => {
         this.$refs.observer.validate().then((success) => {
           if (!success) return
-
-          this.loading = true
-          const q = new OpenEndedQuestion(
-            null,
-            this.chapter,
-            this.question,
-            this.solution,
-            this.$auth.currentUser.uid, // Ref: https://firebase.google.com/docs/reference/js/v8/firebase.User
-            Date.now() / 1000, // Current UNIX timestamp in seconds
-            [],
-            {}
-          )
-
-          // Add a new document with a generated id.
-          addDoc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenOffen`).withConverter(OpenEndedQuestionConverter), q)
-          .then((docRef) => {
-            // Successfully added new question to database
-            q.id = docRef.id
-            this.$emit('added', q)
-            this.$toast({ content: 'Deine Frage wurde hinzugefügt!', color: 'success' })
-          })
-          .catch((error) => {
-            // Failed to add question to database; display error message
-            this.$toast({content: error, color: 'error'})
-          })
-          .then(() => {
-            this.loading = false
-          })
+          this.editing ? this.updateQuestion() : this.createQuestion()
         })
       })
     },
-    clear () {
-      this.chapter = ''
-      this.question = ''
-      this.solution = ''
+    createQuestion () {
+      const q = new OpenEndedQuestion(
+        null,
+        this.chapter,
+        this.question,
+        this.solution,
+        this.$auth.currentUser.uid,
+        Date.now() / 1000, // Current UNIX timestamp in seconds
+        [],
+        {}
+      )
+
+      // Add a new document with a generated id
+      this.loading = true
+      addDoc(collection(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenOffen`).withConverter(OpenEndedQuestionConverter), q)
+      .then((docRef) => {
+        // Successfully added new question to database
+        q.id = docRef.id
+        this.$store.commit('addOpenEndedQuestion', q)
+        this.$toast({ content: 'Deine Frage wurde hinzugefügt!', color: 'success' })
+      })
+      .catch((error) => {
+        // Failed to add question to database; display error message
+        this.$toast({content: error, color: 'error'})
+      })
+      .then(() => {
+        this.loading = false
+      })
+    },
+    updateQuestion () {
+      const q = new OpenEndedQuestion(
+        this.openEndedQuestion.id,
+        this.chapter,
+        this.question,
+        this.solution,
+        this.openEndedQuestion.creator,
+        this.openEndedQuestion.created,
+        this.openEndedQuestion.helpful,
+        this.openEndedQuestion.difficulty
+      )
+
+      // Abort if no changes were made to the question
+      if (_isEqual(this.openEndedQuestion, q)) return
+
+      // Update an existing document
+      this.loading = true
+      setDoc(doc(this.$db, `kurse/${this.$store.state.selectedCourse}/fragenOffen/${q.id}`).withConverter(OpenEndedQuestionConverter), q)
+      .then((docRef) => {
+        // Successfully updated the question
+        this.$store.commit('addOpenEndedQuestion', q)
+        this.$toast({ content: 'Die Frage wurde überarbeitet!', color: 'success' })
+      })
+      .catch((error) => {
+        // Failed to add question to database; display error message
+        this.$toast({content: error, color: 'error'})
+      })
+      .then(() => {
+        this.loading = false
+      })
+    },
+    reset () {
+      if (this.editing) {
+        this.chapter = this.openEndedQuestion.chapter
+        this.question = this.openEndedQuestion.question
+        this.solution = this.openEndedQuestion.solution
+      } else {
+        this.chapter = ''
+        this.question = ''
+        this.solution = ''
+      }
       this.$refs.observer.reset()
     },
     // TODO: This method is used for writing test data to the database and should be removed in production

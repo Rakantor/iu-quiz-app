@@ -5,7 +5,8 @@ export const state = () => ({
   idTokenResult: null,
   user: null,
   courses: {},
-  selectedCourse: undefined
+  selectedCourse: undefined,
+  openEndedQuestions: []
 })
 
 export const getters = {
@@ -53,6 +54,47 @@ export const mutations = {
   },
   setSelectedCourse (state, courseID) {
     state.selectedCourse = courseID
+  },
+  setOpenEndedQuestions (state, questions) {
+    state.openEndedQuestions = questions
+  },
+  addOpenEndedQuestion (state, question) {
+    const index = state.openEndedQuestions.findIndex(q => q.id === question.id)
+    if (index === -1) {
+      // The question does not exist in the array --> add
+      state.openEndedQuestions.push(question)
+    } else {
+      // The question already exists in the array --> update
+      this._vm.$set(state.openEndedQuestions, index, question)
+    }
+  },
+  toggleHelpfulQuestion (state, questionId) {
+    const index = state.openEndedQuestions.findIndex(q => q.id === questionId)
+    if (index !== -1) {
+      const i = state.openEndedQuestions[index].helpful.indexOf(this.$auth.currentUser.uid)
+      if (i === -1) state.openEndedQuestions[index].helpful.push(this.$auth.currentUser.uid)
+      else state.openEndedQuestions[index].helpful.splice(i, 1)
+    }
+  },
+  setDifficulty (state, { questionId, difficulty }) {
+    const index = state.openEndedQuestions.findIndex(q => q.id === questionId)
+    if (index !== -1) {
+      const i = state.openEndedQuestions[index].difficulty[difficulty].indexOf(this.$auth.currentUser.uid)
+
+      if (i !== -1) {
+        state.openEndedQuestions[index].difficulty[difficulty].splice(i, 1)
+      } else {
+        const indexEasy = state.openEndedQuestions[index].difficulty.easy.indexOf(this.$auth.currentUser.uid)
+        if (indexEasy !== -1) state.openEndedQuestions[index].difficulty.easy.splice(indexEasy, 1)
+        const indexMedium = state.openEndedQuestions[index].difficulty.medium.indexOf(this.$auth.currentUser.uid)
+        if (indexMedium !== -1) state.openEndedQuestions[index].difficulty.medium.splice(indexMedium, 1)
+        const indexHard = state.openEndedQuestions[index].difficulty.hard.indexOf(this.$auth.currentUser.uid)
+        if (indexHard !== -1) state.openEndedQuestions[index].difficulty.hard.splice(indexHard, 1)
+        state.openEndedQuestions[index].difficulty[difficulty].push(this.$auth.currentUser.uid)
+      }
+
+      state.openEndedQuestions[index].updateDifficultyLevel()
+    }
   },
   addGameInProgress (state, { courseID, gameID }) {
     const index = state.user.gamesStarted.findIndex(e => e.course === courseID)

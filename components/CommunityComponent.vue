@@ -1,9 +1,18 @@
 <template>
   <v-card>
     <v-card-title>Community Fragen</v-card-title>
-    <OpenEndedQuestionsList :questions="questions" />
+    <OpenEndedQuestionsList />
     <v-divider></v-divider>
-    <AddOpenEndedQuestion @added="addQuestionToList" />
+    <v-expansion-panels accordion class="text-subtitle-1 font-weight-medium">
+      <v-expansion-panel>
+        <v-expansion-panel-header>
+          Eigene Frage einsenden
+        </v-expansion-panel-header>
+        <v-expansion-panel-content>
+          <AddOpenEndedQuestion />
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </v-expansion-panels>
   </v-card>
 </template>
 
@@ -12,16 +21,10 @@ import { collection, getDocs } from 'firebase/firestore'
 import { OpenEndedQuestionConverter } from '~/plugins/open-ended-question'
 
 export default {
-  name: 'CoopComponent',
-  props: {
-    courseId: {
-      type: String,
-      required: true
-    }
-  },
-  data () {
-    return {
-      questions: []
+  name: 'CommunityComponent',
+  computed: {
+    courseId () {
+      return this.$store.state.selectedCourse
     }
   },
   created () {
@@ -34,18 +37,16 @@ export default {
 
       // Execute the query
       getDocs(questionsRef).then((querySnapshot) => {
-        this.questions = []
+        const questions = []
         querySnapshot.forEach((doc) => {
           // Convert to OpenEndedQuestion object
-          this.questions.push(doc.data())
+          questions.push(doc.data())
         })
+        this.$store.commit('setOpenEndedQuestions', questions)
       }).catch((error) => {
         // Failed to fetch questions from the database; display error message
         this.$toast({ content: error, color: 'error' })
       })
-    },
-    addQuestionToList (q) {
-      this.questions.push(q)
     }
   }
 }
