@@ -47,7 +47,7 @@ import { collection, doc, getDocs, updateDoc } from 'firebase/firestore'
 import { ClosedEndedQuestionConverter, states } from '~/plugins/closed-ended-question'
 
 export default {
-  name: 'CoopComponent',
+  name: 'TutorPanel',
   props: {
     courseId: {
       type: String,

@@ -45,7 +45,7 @@
             <QuizComponent :course-id="courseID" />
           </v-col>
           <v-col cols="12">
-            <Coop :course-id="courseID" />
+            <CommunityComponent />
           </v-col>
         </v-row>
       </v-col>
