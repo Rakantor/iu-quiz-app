@@ -44,7 +44,7 @@
                       <strong>{{ item.q }}</strong>
                     </v-expansion-panel-header>
                     <v-expansion-panel-content>
-                      <component :is="dynamicComponent(item.a)" class="text-left" />
+                      <div class="text-left">{{ item.a }}</div>
                     </v-expansion-panel-content>
                   </v-expansion-panel>
                 </v-expansion-panels>
@@ -115,8 +115,7 @@ export default {
         {
           q: 'Wie kann ich einen Kurs zu meinen Favoriten hinzufügen?',
           a: `Indem du in der Kursübersicht (Reiter "Alle Kurse") auf das Herzsymbol
-            <v-icon>mdi-heart-outline</v-icon> bei dem jeweiligen Kurs klickst.
-            Der Kurs wird dir dann unter "Meine Kurse" angezeigt.`,
+            bei dem jeweiligen Kurs klickst. Der Kurs wird dir dann unter "Meine Kurse" angezeigt.`,
           cat: 'allgemein'
         },
         {
@@ -183,11 +182,9 @@ export default {
         {
           q: 'Wie kann ich die Fragen meiner Kommilitonen bewerten?',
           a: `Unterhalb der Musterlösung der jeweiligen Frage findest du fünf Icons.
-            Hier kannst du die Frage als "Hilfreich" markieren <v-icon>mdi-thumb-up-outline</v-icon>,
-            die Schwierigkeit bewerten (leicht <v-icon>mdi-emoticon-outline</v-icon>,
-            mittelschwer <v-icon>mdi-emoticon-happy-outline</v-icon>,
-            schwer <v-icon>mdi-emoticon-confused-outline</v-icon>)
-            oder die Frage bearbeiten/korrigieren <v-icon>mdi-pencil-outline</v-icon>.`,
+            Hier kannst du die Frage als "Hilfreich" markieren,
+            die Schwierigkeit bewerten (leicht, mittelschwer, schwer)
+            oder die Frage bearbeiten/korrigieren.`,
           cat: 'koop modus'
         },
         {
@@ -212,11 +209,6 @@ export default {
     }
   },
   methods: {
-    dynamicComponent (str) {
-      return {
-        template: `<div>${str}</div>`
-      }
-    },
     capitalize (string) {
       return _startCase(string)
     },
