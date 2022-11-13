@@ -1,12 +1,14 @@
 <template>
   <v-container fill-height>
     <!-- TODO: For demo purposes only. Delete in production. -->
-    <DemoInfoDialog />
+    <v-row justify="center" align="center">
+    <v-col cols="12"><DemoInfoDialog /></v-col>
+    <v-col cols="12">
     <!-- -->
     <v-card width="500" elevation="12" class="mx-auto">
       <v-card-title class="mb-3">
-        <span class="text-h3 font-weight-black flex-grow-1 flex-shrink-0">Quiz App</span>
-        <v-img src="/iu-logo.svg" height="40" contain class="flex-grow-0 flex-shrink-1"></v-img>
+        <span class="text-h4 text-md-h3 font-weight-black flex-grow-1 flex-shrink-0">Quiz App</span>
+        <v-img src="/iu-logo.svg" :height="$vuetify.breakpoint.mdAndUp ? 40 : 30" contain class="flex-grow-0 flex-shrink-1"></v-img>
       </v-card-title>
       <v-card-text v-if="existingUser">
         <v-form ref="loginForm" v-model="valid">
@@ -102,6 +104,8 @@
         </v-btn>
       </v-card-text>
     </v-card>
+    </v-col>
+    </v-row>
     <v-dialog v-model="showPwResetDialog" width="500px">
       <v-card>
         <v-card-title>

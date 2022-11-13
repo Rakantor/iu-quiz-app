@@ -3,7 +3,7 @@
     <GameResultDialog ref="resultDialog" :game="game" :course-id="courseID" />
     <v-row dense>
       <v-col cols="12">
-        <p class="text-h6 text-center">{{ game.player1name }} vs. {{ game.player2name || '???' }}</p>
+        <p class="text-h6 text-center">{{ game.player1name }} vs. {{ game.player2name || '?' }}</p>
       </v-col>
       <v-col cols="12">
         <v-icon
@@ -13,7 +13,7 @@
       </v-col>
       <v-col cols="12">
         <v-card class="d-flex align-center" height="250" :disabled="submittedAnswer === null" @click="nextQuestion">
-          <span class="flex-grow-1 text-h5 font-weight-medium text-center">{{ selectedQuestion.question }}</span>
+          <span class="flex-grow-1 text-h5 text--primary font-weight-medium text-center">{{ selectedQuestion.question }}</span>
         </v-card>
       </v-col>
       <v-col v-for="answer, i in answersShuffled" :key="i" cols="6">
@@ -21,8 +21,7 @@
           :color="selectedQuestion.correctAnswer === answer ? answerColor : ''"
           class="d-flex align-center"
           height="150"
-          :disabled="submittedAnswer !== null"
-          @click="submitAnswer(answer)"
+          @click="submittedAnswer === null ? submitAnswer(answer) : nextQuestion()"
         >
           <div class="flex-grow-1 text-h6 text-center">{{ answer }}</div>
         </v-card>
@@ -378,3 +377,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.v-card--disabled {
+  opacity: 0.87 !important; /* same as text--primary */
+}
+</style>

@@ -3,7 +3,7 @@
 <template>
   <v-dialog v-model="show" width="500">
     <template #activator="{ on, attrs }">
-      <v-btn fixed top dark color="red lighten-2" :style="{left: '50%', transform:'translateX(-50%)'}" v-bind="attrs" v-on="on">
+      <v-btn dark color="red lighten-2" :style="{left: '50%', transform:'translateX(-50%)'}" v-bind="attrs" v-on="on">
         <v-icon left>mdi-alert-circle-outline</v-icon>
         Mit Demo-Account Anmelden
       </v-btn>
@@ -12,23 +12,17 @@
       <v-card-title>Information zu Demo-Accounts</v-card-title>
       <v-card-text>
         <p>
-          Folgende Features funktionieren:
-          <ul>
-            <li>Registrierung</li>
-            <li>Anmeldung</li>
-            <li>Verifizierung per E-Mail</li>
-            <li>Passwortrücksetzung per E-Mail</li>
-          </ul>
+          Da die E-Mails zur <strong>Kontoverifizierung</strong> und Passwortrücksetzung meist vom Spam-Filter
+          der IU-Mailserver geblockt werden, kann im Rahmen dieser Demo alternativ mit einem Demo-Account angemeldet werden.
         </p>
-        <p>Alternativ zur Registrierung kann mit einem Demo-Account angemeldet werden:</p>
-        <v-row dense>
-          <v-col cols="4">
+        <v-row>
+          <v-col cols="12" sm="4">
             <v-btn depressed block color="primary" @click="signIn('student')">Student</v-btn>
           </v-col>
-          <v-col cols="4">
+          <v-col cols="12" sm="4">
             <v-btn depressed block color="primary" @click="signIn('tutor')">Tutor</v-btn>
           </v-col>
-          <v-col cols="4">
+          <v-col cols="12" sm="4">
             <v-btn depressed block color="primary" @click="signIn('admin')">Admin</v-btn>
           </v-col>
         </v-row>
