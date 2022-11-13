@@ -1,70 +1,70 @@
 <template>
   <v-container>
-  <v-data-iterator
-    :items="items"
-    :search="search"
-    no-data-text="Keine Daten vorhanden"
-    no-results-text="Keine passenden Ergebnisse gefunden"
-    locale="de-DE"
-    hide-default-footer
-    disable-pagination
-    class="text-center"
-  >
-    <template #header>
-      <v-container>
-        <v-toolbar
-          flat
-          color="transparent"
-        >
-          <v-text-field
-            v-model="search"
-            clearable
+    <v-data-iterator
+      :items="items"
+      :search="search"
+      no-data-text="Keine Daten vorhanden"
+      no-results-text="Keine passenden Ergebnisse gefunden"
+      locale="de-DE"
+      hide-default-footer
+      disable-pagination
+      class="text-center"
+    >
+      <template #header>
+        <v-container fluid class="px-0">
+          <v-toolbar
             flat
-            solo-inverted
-            hide-details
-            prepend-inner-icon="mdi-magnify"
-            label="Suchen"
-          ></v-text-field>
-        </v-toolbar>
-      </v-container>
-    </template>
+            color="transparent"
+          >
+            <v-text-field
+              v-model="search"
+              clearable
+              flat
+              solo-inverted
+              hide-details
+              prepend-inner-icon="mdi-magnify"
+              label="Suchen"
+            ></v-text-field>
+          </v-toolbar>
+        </v-container>
+      </template>
 
-    <template #default="props">
-      <v-container>
-        <v-row>
-          <v-col v-for="category in categories(props.items)" :key="category" cols="12">
-            <v-card>
-              <v-card-title>{{ capitalize(category) }}</v-card-title>
-              <v-expansion-panels hover accordion>
-                <v-expansion-panel
-                  v-for="(item, i) in itemsPerCategory(props.items, category)"
-                  :key="i"
-                >
-                  <v-expansion-panel-header>
-                    <strong>{{ item.q }}</strong>
-                  </v-expansion-panel-header>
-                  <v-expansion-panel-content>
-                    <div class="text-left text-pre-wrap">{{ item.a }}</div>
-                  </v-expansion-panel-content>
-                </v-expansion-panel>
-              </v-expansion-panels>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-container>
-    </template>
+      <template #default="props">
+        <v-container fluid class="px-0">
+          <v-row>
+            <v-col v-for="category in categories(props.items)" :key="category" cols="12">
+              <v-card>
+                <v-card-title>{{ capitalize(category) }}</v-card-title>
+                <v-expansion-panels hover accordion>
+                  <v-expansion-panel
+                    v-for="(item, i) in itemsPerCategory(props.items, category)"
+                    :key="i"
+                  >
+                    <v-expansion-panel-header>
+                      <strong>{{ item.q }}</strong>
+                    </v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                      <component :is="dynamicComponent(item.a)" class="text-left" />
+                    </v-expansion-panel-content>
+                  </v-expansion-panel>
+                </v-expansion-panels>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-container>
+      </template>
 
-    <template #footer>
-      <v-container>
-        <v-card>
-          <v-card-title class="justify-center text-subtitle-1">Keine Antwort gefunden? Schreib uns!</v-card-title>
-          <v-card-subtitle class="text-subtitle-1 text-center">
-            <a href="mailto:support@iu-quiz-app.de">support@iu-quiz-app.de</a>
-          </v-card-subtitle>
-        </v-card>
-      </v-container>
-    </template>
-  </v-data-iterator>
+      <template #footer>
+        <v-container fluid class="px-0">
+          <v-card>
+            <v-card-title class="justify-center text-subtitle-1">Keine Antwort gefunden? Schreib uns!</v-card-title>
+            <v-card-subtitle class="text-subtitle-1 text-center">
+              <a href="mailto:support@iu-quiz-app.de">support@iu-quiz-app.de</a>
+            </v-card-subtitle>
+          </v-card>
+        </v-container>
+      </template>
+    </v-data-iterator>
   </v-container>
 </template>
 
@@ -89,28 +89,34 @@ export default {
         },
         {
           q: 'Wie wird mein Benutzerkonto freigeschaltet?',
-          a: 'Nach der Registrierung senden wir Dir automatisch eine Bestätigungsmail an deine E-Mail-Adresse. Durch einen Klick auf den Link in der E-Mail verifizierst du deinen Account.',
+          a: `Nach der Registrierung senden wir Dir automatisch eine Bestätigungsmail an deine E-Mail-Adresse.
+            Durch einen Klick auf den Link in der E-Mail verifizierst du deinen Account.`,
           cat: 'konto'
         },
         {
           q: 'Wie kann ich meine Benutzerdaten ändern?',
-          a: 'Du kannst deinen Anzeigenamen und dein Profilbild ändern, indem du in der Navigationsleiste auf deinen Namen klickst. Es ist aktuell nicht möglich deine E-Mail-Adresse zu ändern.',
+          a: `Du kannst deinen Anzeigenamen und dein Profilbild ändern, indem du in der Navigationsleiste auf deinen Namen klickst.
+            Es ist aktuell nicht möglich deine E-Mail-Adresse zu ändern.`,
           cat: 'konto'
         },
         {
           q: 'Was kann ich machen, wenn ich mein Passwort vergessen habe oder ändern möchte?',
-          a: 'Klicke auf der Login-Seite auf den Link „Passwort vergessen?“. Wir schicken Dir anschließend einen Link zum Zurücksetzen deines Passworts an deine E-Mail-Adresse.',
+          a: `Klicke auf der Login-Seite auf den Link "Passwort vergessen?".
+            Wir schicken Dir anschließend einen Link zum Zurücksetzen deines Passworts an deine E-Mail-Adresse.`,
           cat: 'konto'
         },
         {
           q: 'Wie lösche ich mein Benutzerkonto?',
-          a: 'Dein Benutzerkonto wir nach längerer Inaktivität (6 Monate) automatisch gelöscht. Über die bevorstehende Löschung wirst du rechtzeitig per E-Mail informiert.',
+          a: `Dein Benutzerkonto wir nach längerer Inaktivität (6 Monate) automatisch gelöscht.
+            Über die bevorstehende Löschung wirst du rechtzeitig per E-Mail informiert.`,
           cat: 'konto'
         },
         // Allgemein
         {
           q: 'Wie kann ich einen Kurs zu meinen Favoriten hinzufügen?',
-          a: 'Indem du in der Kursübersicht (Reiter "Alle Kurse") auf das Herzsymbol bei dem jeweiligen Kurs klickst. Der Kurs wird dir dann unter "Meine Kurse" angezeigt.',
+          a: `Indem du in der Kursübersicht (Reiter "Alle Kurse") auf das Herzsymbol
+            <v-icon>mdi-heart-outline</v-icon> bei dem jeweiligen Kurs klickst.
+            Der Kurs wird dir dann unter "Meine Kurse" angezeigt.`,
           cat: 'allgemein'
         },
         {
@@ -122,6 +128,11 @@ export default {
         {
           q: 'Was ist der "Challenge Modus"?',
           a: 'Im Challenge Modus kannst du gegen deine Kommilitonen in zeitlich begrenzten Quizduellen antreten.',
+          cat: 'challenge modus'
+        },
+        {
+          q: 'Wie komme ich zur nächsten Frage?',
+          a: 'Klicke/tippe auf das Fragenfeld oder eines der Antwortfelder!',
           cat: 'challenge modus'
         },
         {
@@ -141,39 +152,71 @@ export default {
         },
         {
           q: 'Wie weiß ich, dass ich gut für die Klausur vorbereitet bin?',
-          a: 'In deiner persönlichen Statistik w, angezeigt wie gut du auf die Klausur vorbereitet bist. Bitte beachte, dass dies lediglich eine Empfehlung und keine Garantie für das Bestehen der Klausur ist!',
+          a: `In deiner persönlichen Statistik (unterhalb des Spielebuttons) wird dir angezeigt,
+            wie gut du auf die Klausur vorbereitet bist. Bitte beachte, dass dies lediglich eine Empfehlung
+            und keine Garantie für das Bestehen der Klausur ist!`,
           cat: 'challenge modus'
         },
         {
           q: 'Wie kann ich neue Quizfragen hinzufügen?',
-          a: 'Unterhalb des Spielebuttons hast du die Gelegenheit eigene Quizfragen einzureichen, die anschließend vom Tutor überprüft und freigegeben werden.',
+          a: `Unterhalb des Buttons "Spielen" findest du den Reiter "Neue Quizfrage einreichen".
+            Hier hast du die Gelegenheit eigene Quizfragen einzureichen,
+            die anschließend vom Tutor überprüft und freigegeben werden.`,
           cat: 'challenge modus'
         },
         {
-          q: 'Wie kann ich überprüfen, ob meine eingesendete Frage angenommen wurde? ',
-          a: 'Unterhalb des Spielebuttons hast du die Gelegenheit eigene Quizfragen einzureichen, die anschließend vom Tutor überprüft und freigegeben werden.',
+          q: 'Wie kann ich überprüfen, ob meine eingesendete Frage angenommen wurde?',
+          a: `Wechsle innerhalb des Reiters "Neue Quizfrage einreichen" zu dem Tab "Meine Fragen".
+            Hier findest du die Auflistung deiner eingereichten Fragen und kannst den jeweiligen Status einsehen.`,
           cat: 'challenge modus'
         },
         // Koop Modus
         {
-          q: 'Was ist der "Koop Modus"?',
-          a: 'Im Challenge Modus kannst du gegen deine Kommilitonen in zeitlich begrenzten Quizduellen antreten.',
+          q: 'Was ist der "Koop Modus" alias "Community Fragen"?',
+          a: `Hierbei handelt es sich um einen Fragenkatalog von offenen Fragen,
+            der kollaborativ von allen Kursteilnehmern gepflegt werden kann.
+            Das heißt, jeder kann neue Fragen hinzufügen und bestehende Fragen überarbeiten!
+            Außerdem kann jeder Kursteilnehmer die Fragen hinsichtlich deren inhaltlichen Qualität
+            und Schwierigkeit bewerten.`,
           cat: 'koop modus'
         },
         {
-          q: 'Wie kann ich überprüfen, ob mein eingesendete Frage im Fragenkatalog vorhanden ist?',
-          a: 'Indem du bei den Community Fragen, deine Fragen nach "Neueste" sortierst.',
+          q: 'Wie kann ich die Fragen meiner Kommilitonen bewerten?',
+          a: `Unterhalb der Musterlösung der jeweiligen Frage findest du fünf Icons.
+            Hier kannst du die Frage als "Hilfreich" markieren <v-icon>mdi-thumb-up-outline</v-icon>,
+            die Schwierigkeit bewerten (leicht <v-icon>mdi-emoticon-outline</v-icon>,
+            mittelschwer <v-icon>mdi-emoticon-happy-outline</v-icon>,
+            schwer <v-icon>mdi-emoticon-confused-outline</v-icon>)
+            oder die Frage bearbeiten/korrigieren <v-icon>mdi-pencil-outline</v-icon>.`,
+          cat: 'koop modus'
+        },
+        {
+          q: 'Wie kann ich neue Fragen hinzufügen?',
+          a: `Unterhalb des Fragenkatalogs findest du den Reiter "Eigene Frage einsenden".
+            Im Gegensatz zu Quizfragen werden Community Fragen nicht vom Tutor geprüft und
+            werden nach der Erstellung direkt im Fragenkatalog aufgelistet.`,
+          cat: 'koop modus'
+        },
+        {
+          q: 'Wie kann ich überprüfen, ob meine eingesendete Frage im Fragenkatalog vorhanden ist?',
+          a: 'Indem du den Fragenkatalog nach "Neueste" sortierst, oder einen Teil deiner Frage ins Suchfeld eintippst.',
           cat: 'koop modus'
         },
         {
           q: 'Wer kann mir helfen, wenn ich eine Aufgabenstellung nicht verstehe?',
-          a: 'Wähle in der Navigationsleiste den Reiter "Community" aus. Du wirst anschließend zum Forum weitergeleitet, wo du dich mit deinen Kommilitonen über inhaltliche austauschen kannst.',
+          a: `Wähle in der Navigationsleiste den Reiter "Community" aus.
+            Du wirst anschließend zum Forum weitergeleitet, wo du dich mit deinen Kommilitonen über inhaltliche austauschen kannst.`,
           cat: 'koop modus'
         },
       ]
     }
   },
   methods: {
+    dynamicComponent (str) {
+      return {
+        template: `<div>${str}</div>`
+      }
+    },
     capitalize (string) {
       return _startCase(string)
     },
