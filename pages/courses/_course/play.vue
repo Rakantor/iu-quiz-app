@@ -275,6 +275,9 @@ export default {
           antwort: this.submittedAnswer,
           richtig: this.answerCorrect
         })
+
+        // Update user stats (correct/incorrect answers given) in store
+        this.$store.commit('addAnswerToStats', this.answerCorrect)
       }).catch((error) => {
         // Batch execution failed; display error message
         this.$toast({content: error, color: 'error'})
@@ -360,7 +363,10 @@ export default {
       batch.update(refGame, { abgeschlossen: true })
 
       // Commit the batch
-      batch.commit().catch((error) => {
+      batch.commit().then((empty) => {
+        // Update user stats (wins/losses/ties) in store
+        this.$store.commit('addGameToStats', { won: result.winner === this.playerNumber, tie: result.tie })
+      }).catch((error) => {
         // Batch execution failed; display error message
         this.$toast({ content: error, color: 'error' })
       })

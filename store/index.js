@@ -55,6 +55,28 @@ export const mutations = {
   setSelectedCourse (state, courseID) {
     state.selectedCourse = courseID
   },
+  addGameInProgress (state, { courseID, gameID }) {
+    const index = state.user.gamesStarted.findIndex(e => e.course === courseID)
+    if (index !== -1) {
+      state.user.gamesStarted[index].course = courseID
+      state.user.gamesStarted[index].game = gameID
+    } else {
+      state.user.gamesStarted.push({ course: courseID, game: gameID })
+    }
+  },
+  removeGameInProgress (state, courseID) {
+    const index = state.user.gamesStarted.findIndex(e => e.course === courseID)
+    state.user.gamesStarted.splice(index, 1)
+  },
+  addAnswerToStats (state, answerCorrect) {
+    if (answerCorrect) state.user.games[state.selectedCourse].questionsCorrect++
+    else state.user.games[state.selectedCourse].questionsIncorrect++
+  },
+  addGameToStats (state, { won, tie }) {
+    if (tie) state.user.games[state.selectedCourse].tie++
+    else if (won) state.user.games[state.selectedCourse].won++
+    else state.user.games[state.selectedCourse].lost++
+  },
   setOpenEndedQuestions (state, questions) {
     state.openEndedQuestions = questions
   },
@@ -95,19 +117,6 @@ export const mutations = {
 
       state.openEndedQuestions[index].updateDifficultyLevel()
     }
-  },
-  addGameInProgress (state, { courseID, gameID }) {
-    const index = state.user.gamesStarted.findIndex(e => e.course === courseID)
-    if (index !== -1) {
-      state.user.gamesStarted[index].course = courseID
-      state.user.gamesStarted[index].game = gameID
-    } else {
-      state.user.gamesStarted.push({ course: courseID, game: gameID })
-    }
-  },
-  removeGameInProgress (state, courseID) {
-    const index = state.user.gamesStarted.findIndex(e => e.course === courseID)
-    state.user.gamesStarted.splice(index, 1)
   }
 }
 
